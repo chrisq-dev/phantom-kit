@@ -1,0 +1,54 @@
+#ifndef WEB_SERVER_H
+#define WEB_SERVER_H
+
+#include <ESP8266WebServer.h>
+#include "portal/credential_store.h"
+#include "portal/captive_portal.h"
+#include "wifi/ap_manager.h"
+#include "wifi/deauth.h"
+#include "wifi/beacon_flood.h"
+#include "wifi/probe_sniffer.h"
+#include "wifi/evil_twin.h"
+#include "wifi/auto_portal.h"
+
+class PhantomWebServer {
+public:
+    PhantomWebServer(CredentialStore& store, CaptivePortal& portal, APManager& ap,
+                     DeauthModule& deauth, BeaconFloodModule& beacon,
+                     ProbeSnifferModule& probe, EvilTwinModule& evilTwin,
+                     AutoPortalModule& autoPortal);
+    void begin();
+    void handleClient();
+    ESP8266WebServer& getServer() { return server; }
+
+private:
+    ESP8266WebServer server;
+    CredentialStore& store;
+    CaptivePortal& portal;
+    APManager& ap;
+    DeauthModule& deauth;
+    BeaconFloodModule& beacon;
+    ProbeSnifferModule& probe;
+    EvilTwinModule& evilTwin;
+    AutoPortalModule& autoPortal;
+    
+    void handleDashboard();
+    void handleAPIStatus();
+    void handleAPICredentials();
+    void handleAPILog();
+    void handleAPIControl();
+    void handleAPITemplate();
+    void handleAPISSID();
+    void handleAPIClear();
+    void handleAPIDeauth();
+    void handleAPIBeacon();
+    void handleAPIProbe();
+    void handleAPIEvilTwin();
+    void handleAPIAutoPortal();
+    
+    String getDashboardHTML();
+    String getCSS();
+    String getJS();
+};
+
+#endif

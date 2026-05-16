@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WhatsApp Web</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f0f2f5;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.header{width:100%;background:#008069;padding:16px 24px;display:flex;align-items:center;gap:12px}
+.header svg{width:40px;height:40px;fill:#fff}
+.header span{color:#fff;font-size:20px;font-weight:500}
+.container{display:flex;gap:60px;max-width:900px;margin-top:60px;padding:20px;flex-wrap:wrap;justify-content:center}
+.qr-section{background:#fff;padding:40px;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.1);width:100%;max-width:460px;text-align:center}
+.qr-section h2{font-size:28px;color:#41525d;font-weight:300;margin-bottom:8px}
+.qr-section p{color:#667781;font-size:14px;line-height:1.5;margin-bottom:24px}
+.qr-code{width:264px;height:264px;background:#f0f2f5;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.qr-code svg{width:200px;height:200px}
+.steps{text-align:left;margin:24px 0}
+.steps h3{font-size:18px;color:#41525d;margin-bottom:12px}
+.steps ol{padding-left:20px;color:#667781;font-size:14px;line-height:2}
+.steps li{margin-bottom:4px}
+.phone-link{color:#00a3e0;font-size:14px;text-decoration:none;cursor:pointer}
+.phone-link:hover{text-decoration:underline}
+.checkbox{display:flex;align-items:center;gap:8px;margin:16px 0;font-size:14px;color:#667781}
+.checkbox input{accent-color:#008069}
+.encrypt-notice{display:flex;align-items:center;gap:8px;margin-top:24px;font-size:12px;color:#8696a0}
+.encrypt-notice svg{width:16px;height:16px;fill:#8696a0}
+.footer{margin-top:40px;font-size:12px;color:#8696a0;display:flex;gap:16px}
+.footer a{color:#00a3e0;text-decoration:none}
+.help-link{color:#00a3e0;font-size:14px;text-decoration:none;margin-top:16px;display:inline-block}
+@media(max-width:768px){.container{flex-direction:column;align-items:center;margin-top:20px}.qr-section{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="header">
+<svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+<span>WhatsApp Web</span>
+</div>
+<div class="container">
+<div class="qr-section">
+<h2>Usa WhatsApp en tu computadora</h2>
+<p>Abre WhatsApp en tu tel&eacute;fono, ve a <strong>Men&uacute;</strong> o <strong>Configuraci&oacute;n</strong> y selecciona <strong>Dispositivos vinculados</strong></p>
+<div class="qr-code">
+<svg viewBox="0 0 200 200"><rect x="20" y="20" width="40" height="40" fill="#000"/><rect x="25" y="25" width="30" height="30" fill="#fff"/><rect x="30" y="30" width="20" height="20" fill="#000"/><rect x="140" y="20" width="40" height="40" fill="#000"/><rect x="145" y="25" width="30" height="30" fill="#fff"/><rect x="150" y="30" width="20" height="20" fill="#000"/><rect x="20" y="140" width="40" height="40" fill="#000"/><rect x="25" y="145" width="30" height="30" fill="#fff"/><rect x="30" y="150" width="20" height="20" fill="#000"/><rect x="70" y="20" width="10" height="10" fill="#000"/><rect x="90" y="20" width="10" height="10" fill="#000"/><rect x="70" y="40" width="10" height="10" fill="#000"/><rect x="100" y="30" width="10" height="10" fill="#000"/><rect x="70" y="70" width="10" height="10" fill="#000"/><rect x="80" y="80" width="10" height="10" fill="#000"/><rect x="90" y="70" width="10" height="10" fill="#000"/><rect x="100" y="80" width="10" height="10" fill="#000"/><rect x="110" y="70" width="10" height="10" fill="#000"/><rect x="70" y="100" width="10" height="10" fill="#000"/><rect x="80" y="110" width="10" height="10" fill="#000"/><rect x="100" y="100" width="10" height="10" fill="#000"/><rect x="120" y="110" width="10" height="10" fill="#000"/><rect x="140" y="70" width="10" height="10" fill="#000"/><rect x="150" y="80" width="10" height="10" fill="#000"/><rect x="160" y="70" width="10" height="10" fill="#000"/><rect x="170" y="80" width="10" height="10" fill="#000"/><rect x="140" y="100" width="10" height="10" fill="#000"/><rect x="150" y="110" width="10" height="10" fill="#000"/><rect x="160" y="100" width="10" height="10" fill="#000"/><rect x="170" y="110" width="10" height="10" fill="#000"/><rect x="140" y="140" width="10" height="10" fill="#000"/><rect x="150" y="150" width="10" height="10" fill="#000"/><rect x="160" y="140" width="10" height="10" fill="#000"/><rect x="170" y="150" width="10" height="10" fill="#000"/><rect x="70" y="140" width="10" height="10" fill="#000"/><rect x="80" y="150" width="10" height="10" fill="#000"/><rect x="100" y="140" width="10" height="10" fill="#000"/><rect x="110" y="150" width="10" height="10" fill="#000"/><rect x="70" y="170" width="10" height="10" fill="#000"/><rect x="90" y="170" width="10" height="10" fill="#000"/><rect x="100" y="170" width="10" height="10" fill="#000"/><rect x="120" y="170" width="10" height="10" fill="#000"/></svg>
+</div>
+<a class="phone-link" href="#">Vincular con n&uacute;mero de tel&eacute;fono</a>
+<div class="steps">
+<h3>Para vincular tu cuenta:</h3>
+<ol>
+<li>Abre WhatsApp en tu tel&eacute;fono</li>
+<li>Toca <strong>Men&uacute;</strong> o <strong>Configuraci&oacute;n</strong> y selecciona <strong>Dispositivos vinculados</strong></li>
+<li>Toca <strong>Vincular un dispositivo</strong></li>
+<li>Apunta tu tel&eacute;fono a esta pantalla para capturar el c&oacute;digo QR</li>
+</ol>
+</div>
+<label class="checkbox"><input type="checkbox" checked> Mantener sesi&oacute;n iniciada en este navegador</label>
+<div class="encrypt-notice">
+<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+Tus mensajes personales est&aacute;n cifrados de extremo a extremo
+</div>
+</div>
+</div>
+<div class="footer">
+<a href="#">T&eacute;rminos del servicio</a>
+<a href="#">Pol&iacute;tica de privacidad</a>
+</div>
+</body>
+</html>

