@@ -129,7 +129,7 @@ void PhantomWebServer::handleDashboard() {
     html += FPSTR(DASH_CSS);
     html += "</style></head><body><div class='c'>";
     
-    html += "<header><div class='logo'><span class='li'>PK</span><h1>PhantomKit</h1></div><div class='st'><span class='dot' id='sd'></span><span id='st'>Inactivo</span></div></header>";
+    html += "<header><div class='logo'><h1>PhantomKit</h1></div><div class='st'><span class='dot' id='sd'></span><span id='st'>Inactivo</span></div></header>";
     
     html += "<nav class='tabs'>";
     html += "<button class='tab a' onclick='showTab(this,\"portal\")'>Portal</button>";
