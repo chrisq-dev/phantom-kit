@@ -197,16 +197,6 @@ Por defecto en canal 6 (más compatible). Configurable en `config.h`:
 - [ ] Modo offline con SD card
 - [ ] Captura de handshakes WPA2
 
-## Contribuir
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el repositorio
-2. Crea una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abre un Pull Request
-
 ## Disclaimer Legal
 
 Esta herramienta es exclusivamente para **fines educativos y auditorías de seguridad autorizadas**. El uso indebido es responsabilidad del usuario. Ver [docs/legal.md](docs/legal.md) para más detalles.
