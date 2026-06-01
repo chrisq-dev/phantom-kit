@@ -19,19 +19,6 @@
 
 ---
 
-## Demo
-
-> Connect → Open `http://192.168.4.1/dashboard` → Operate from any device
-
-<!-- Add your screenshot or GIF here -->
-<!-- ![PhantomKit Dashboard](docs/assets/dashboard_demo.gif) -->
-
-| Control Panel | Credential Capture | Attack Modules |
-|:---:|:---:|:---:|
-| *(screenshot)* | *(screenshot)* | *(screenshot)* |
-
----
-
 ## What is PhantomKit?
 
 ESP8266 PhantomKit is an open-source Wi-Fi security auditing tool that runs entirely on an ESP8266 microcontroller (NodeMCU, Wemos D1 Mini, etc.). It implements real social engineering techniques through a web dashboard accessible from any browser-enabled device, with no laptop, server, or internet connection required.
