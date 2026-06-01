@@ -1,83 +1,151 @@
+<div align="center">
+
+[English](README.md) | [Español](README.es.md)
+
 # ESP8266 PhantomKit
 
-> Suite de ingeniería social y auditoría de seguridad para ESP8266
+**Wi-Fi security auditing and social engineering testing suite for ESP8266**
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![ESP8266](https://img.shields.io/badge/platform-ESP8266-orange.svg)
-![Status](https://img.shields.io/badge/status-active-success.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-ESP8266-orange.svg)](https://www.espressif.com/en/products/socs/esp8266)
+[![Framework](https://img.shields.io/badge/Framework-Arduino%20%2F%20PlatformIO-teal.svg)](https://platformio.org/)
+[![Release](https://img.shields.io/github/v/release/chrisq-dev/phantom-kit?color=brightgreen)](https://github.com/chrisq-dev/phantom-kit/releases)
+[![Issues](https://img.shields.io/github/issues/chrisq-dev/phantom-kit)](https://github.com/chrisq-dev/phantom-kit/issues)
 
-## Descripción
+*Turn your ESP8266 into a self-contained Wi-Fi security auditing platform.*  
+*No external infrastructure. No dependencies. Just the chip.*
 
-ESP8266 PhantomKit es una herramienta de auditoría de seguridad que convierte tu ESP8266 en una plataforma autónoma de pruebas de ingeniería social. Con un dashboard web intuitivo y channel hopping automático, puedes operar en cualquier lugar sin depender de infraestructura externa.
+</div>
 
-## Características
+---
 
-- **Evil Portal** - Captive portal con 8 templates clonados (Facebook, Instagram, Microsoft, X, Google, WiFi Login, Netflix, WhatsApp)
-- **Dashboard Web** - Interfaz responsive para control total desde cualquier dispositivo
-- **Captura en Tiempo Real** - Credenciales visibles instantáneamente en el dashboard
-- **SSID Configurable** - Cambia el nombre de la red sin reprogramar
-- **Templates Intercambiables** - Selecciona el template apropiado para cada contexto
-- **Logs en Vivo** - Monitoreo de eventos del sistema en tiempo real
-- **Channel Hopping Automático** - Escaneo y ataque en canales 1-13 automáticamente
-- **Operación Autónoma** - Funciona en cualquier lugar sin infraestructura externa
-- **Deauth Attack** - Forzar desconexión de dispositivos de redes objetivo
-- **Beacon Flood** - Generación de redes falsas para saturar listas WiFi
-- **Probe Sniffer** - Detección de redes buscadas por dispositivos cercanos
-- **Evil Twin** - Clonación de redes WiFi existentes
+## Demo
 
-## Requisitos
+> Connect → Open `http://192.168.4.1/dashboard` → Operate from any device
 
-- ESP8266 (NodeMCU, Wemos D1 Mini, etc.)
-- PlatformIO Core
-- Cable USB de datos
+<!-- Add your screenshot or GIF here -->
+<!-- ![PhantomKit Dashboard](docs/assets/dashboard_demo.gif) -->
+
+| Control Panel | Credential Capture | Attack Modules |
+|:---:|:---:|:---:|
+| *(screenshot)* | *(screenshot)* | *(screenshot)* |
+
+---
+
+## What is PhantomKit?
+
+ESP8266 PhantomKit is an open-source Wi-Fi security auditing tool that runs entirely on an ESP8266 microcontroller (NodeMCU, Wemos D1 Mini, etc.). It implements real social engineering techniques through a web dashboard accessible from any browser-enabled device, with no laptop, server, or internet connection required.
+
+Designed for:
+- Security students who want to learn with real hardware
+- Auditors conducting authorized phishing simulations
+- Security awareness trainers in corporate environments
+
+---
+
+## Features
+
+### Web Dashboard
+- Full control from any device with a browser
+- Real-time credential capture table
+- Live event log with timestamps
+- Configurable SSID without reflashing
+- Fully autonomous — no internet or external server needed
+
+### Attack Modules
+
+| Module | Description | Technique |
+|--------|-------------|-----------|
+| Evil Portal | Captive portal with 8 cloned templates | DNS Spoofing + Captive Portal |
+| Deauth Attack | Disconnects devices from a target network | IEEE 802.11 Deauth Frames |
+| Beacon Flood | Saturates scan lists with 50+ fake SSIDs | Fake Beacon Frames |
+| Probe Sniffer | Detects networks sought by nearby devices | Passive Probe Capture |
+| Evil Twin | Clones an existing Wi-Fi network | SSID/BSSID Spoofing |
+| Channel Hopping | Automatic rotation across channels 1–13 | Multi-channel Scanning |
+| Auto-Portal | Suggests the best template for the environment | Environment Analysis |
+
+### Evil Portal Templates
+
+| Template | Style | Fields |
+|----------|-------|--------|
+| Facebook | Classic blue, centered card | Email + Password |
+| Instagram | Purple/orange gradient | Username + Password |
+| Microsoft | Fluent Design | Email + Password |
+| X (Twitter) | Dark mode, black | Username + Password |
+| Google | Ultra minimal | Email + Password |
+| WiFi Login | Generic modern | Wi-Fi Password x2 |
+| Netflix | Dark background, red | Email + Password |
+| WhatsApp | Green, mobile-first | Phone + Code |
+
+---
+
+## Quick Start
+
+### Requirements
+
+- ESP8266 (NodeMCU v2, Wemos D1 Mini, or similar)
+- [PlatformIO](https://platformio.org/) installed
+- USB data cable
 - Python 3.x
 
-## Instalación Rápida
+### Installation
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/esp8266-phantomkit.git
-cd esp8266-phantomkit
+# 1. Clone the repository
+git clone https://github.com/chrisq-dev/phantom-kit.git
+cd phantom-kit
 
-# 2. Compilar
+# 2. Build the firmware
 pio run
 
-# 3. Subir templates a LittleFS
+# 3. Upload templates to the filesystem (LittleFS)
 pio run --target uploadfs
 
-# 4. Flashear firmware
+# 4. Flash the firmware
 pio run --target upload
 
-# 5. Conectarse a la red WiFi
-# SSID: PhantomKit
-# Password: phantom123
+# 5. Connect to the network created by the ESP8266
+#    SSID:     PhantomKit
+#    Password: phantom123
 
-# 6. Abrir dashboard
-# http://192.168.4.1/dashboard
+# 6. Open the dashboard in your browser
+#    http://192.168.4.1/dashboard
 ```
 
-## Estructura del Proyecto
+### Configuration
+
+Edit `src/config.h` to change the SSID, password, or channel before compiling:
+
+```cpp
+#define AP_SSID     "PhantomKit"
+#define AP_PASSWORD "phantom123"
+#define AP_CHANNEL  6
+```
+
+---
+
+## Project Structure
 
 ```
-esp8266-phantomkit/
-├── platformio.ini              # Configuración de PlatformIO
+phantom-kit/
+├── platformio.ini              # PlatformIO configuration
 ├── src/
 │   ├── main.cpp                # Entry point
-│   ├── config.h                # Configuración global
+│   ├── config.h / config.cpp   # Global configuration
 │   ├── wifi/
-│   │   ├── ap_manager.cpp/h    # Gestión de AP WiFi
-│   │   ├── dns_server.cpp/h    # DNS spoofing
-│   │   ├── web_server.cpp/h    # Dashboard web
-│   │   ├── deauth.cpp/h        # Módulo Deauth
-│   │   ├── beacon_flood.cpp/h  # Módulo Beacon Flood
-│   │   ├── probe_sniffer.cpp/h # Módulo Probe Sniffer
-│   │   ├── evil_twin.cpp/h     # Módulo Evil Twin
-│   │   ├── auto_portal.cpp/h   # Módulo Auto-Portal
-│   │   └── channel_hopper.cpp/h # Channel Hopping
+│   │   ├── ap_manager.*        # Access Point management
+│   │   ├── dns_server.*        # DNS spoofing (captive portal)
+│   │   ├── web_server.*        # Web dashboard + REST API
+│   │   ├── deauth.*            # Deauth Attack module
+│   │   ├── beacon_flood.*      # Beacon Flood module
+│   │   ├── probe_sniffer.*     # Probe Sniffer module
+│   │   ├── evil_twin.*         # Evil Twin module
+│   │   ├── auto_portal.*       # Auto-Portal module
+│   │   └── channel_hopper.*    # Automatic channel hopping
 │   └── portal/
-│       ├── captive_portal.cpp/h # Portal cautivo
-│       └── credential_store.cpp/h # Almacenamiento de credenciales
-├── data/templates/             # Templates HTML
+│       ├── captive_portal.*    # Captive portal logic
+│       └── credential_store.*  # Credential storage
+├── data/templates/             # HTML templates (LittleFS)
 │   ├── facebook.html
 │   ├── instagram.html
 │   ├── microsoft.html
@@ -87,124 +155,108 @@ esp8266-phantomkit/
 │   ├── netflix.html
 │   └── whatsapp.html
 ├── docs/
-│   ├── setup.md                # Guía de instalación
-│   ├── usage.md                # Guía de uso
-│   └── legal.md                # Disclaimer legal
+│   ├── setup.md                # Detailed installation guide
+│   ├── usage.md                # Usage guide and scenarios
+│   └── legal.md                # Legal disclaimer
+├── CHANGELOG.md                # Version history
 └── README.md
 ```
 
-## Dashboard Web
+---
 
-El dashboard incluye:
+## Audit Scenarios
 
-- **Panel de Control** - Activar/desactivar portal, cambiar SSID, seleccionar template
-- **Estadísticas** - Clientes conectados, credenciales capturadas, template activo
-- **Tabla de Credenciales** - Capturas en tiempo real con template, campos y hora
-- **Logs en Vivo** - Eventos del sistema con timestamp
-- **Control de Ataques** - Iniciar/detener Deauth, Beacon, Probe, Evil Twin
-
-## Templates
-
-| Template | Estilo | Campos |
-|----------|--------|--------|
-| Facebook | Azul, card centrada | Email + Contraseña |
-| Instagram | Minimalista, gradiente | Usuario + Contraseña |
-| Microsoft | Fluent Design, limpio | Email + Contraseña |
-| X (Twitter) | Dark mode, negro | Usuario + Contraseña |
-| Google | Ultra minimalista | Email + Contraseña |
-| WiFi Login | Genérico, moderno | Contraseña WiFi x2 |
-| Netflix | Fondo oscuro, rojo | Email + Contraseña |
-| WhatsApp | Verde, mobile-first | Teléfono + Código |
-
-## Módulos de Ataque
-
-### Deauth Attack
-Envía paquetes de desautenticación para desconectar dispositivos de una red objetivo.
-- Escaneo multi-canal (1-13)
-- Selección por BSSID o canal
-- Contador de frames enviados
-
-### Beacon Flood
-Genera redes WiFi falsas para saturar la lista de redes disponibles.
-- 50+ SSIDs predefinidos
-- Canal configurable
-- Contador de beacons enviados
-
-### Probe Sniffer
-Captura probe requests para ver qué redes buscan los dispositivos cercanos.
-- Channel hopping automático
-- Detección de MAC y SSIDs buscados
-- Historial de dispositivos
-
-### Evil Twin
-Clona una red WiFi existente para engañar a los usuarios.
-- Escaneo multi-canal
-- Clonación por SSID/BSSID
-- Integración con Portal
-
-### Auto-Portal
-Detección automática de redes populares y configuración sugerida.
-- Análisis de entorno
-- Recomendaciones de template
-
-## Uso en Auditorías
-
-### Escenario 1: Oficina Corporativa
+### Scenario 1 — Corporate Office
 ```
-SSID: CorpWiFi-Visitantes
+Goal:     Demonstrate internal phishing risk
+SSID:     CorpWiFi-Guests
 Template: Microsoft Login
-Objetivo: Demostrar riesgo de phishing interno
+Modules:  Evil Portal + Deauth on corporate network
 ```
 
-### Escenario 2: Hotel/Aeropuerto
+### Scenario 2 — Hotel / Airport
 ```
-SSID: WiFi Gratis Hotel
+Goal:     Demonstrate public network risk
+SSID:     Free Hotel WiFi
 Template: WiFi Login
-Objetivo: Demostrar riesgo de redes públicas
+Modules:  Evil Twin of venue network
 ```
 
-### Escenario 3: Concientización
+### Scenario 3 — Security Awareness Training
 ```
-SSID: Free Airport WiFi
+Goal:     Employee security awareness workshop
+SSID:     Free Airport WiFi
 Template: Google
-Objetivo: Training de seguridad para empleados
+Modules:  Evil Portal with auditor report
 ```
 
-## Configuración Avanzada
+---
+
+## Advanced Configuration
 
 ### Channel Hopping
-El ESP8266 rota automáticamente entre canales 1-13 para:
-- Escanear todas las redes del área
-- Capturar probes en cualquier canal
-- Atacar objetivos en cualquier canal
+The ESP8266 automatically rotates across channels 1–13 to:
+- Scan all networks in the area
+- Capture probe requests on any channel
+- Execute attacks on targets across all channels
 
-### Canal del AP
-Por defecto en canal 6 (más compatible). Configurable en `config.h`:
+### AP Channel
+Default is channel 6 (most compatible). Configurable in `config.h`:
 ```cpp
 #define AP_CHANNEL 6
 ```
 
+### Dependencies (PlatformIO)
+```ini
+lib_deps =
+    ESP8266WiFi
+    DNSServer
+    ESP8266WebServer
+    bblanchon/ArduinoJson @ ^6.21.3
+```
+
+---
+
 ## Roadmap
 
+- [x] Evil Portal with 8 templates
 - [x] Deauth Attack
 - [x] Beacon Flood
 - [x] Probe Request Sniffer
 - [x] Evil Twin
 - [x] Auto-Portal
-- [x] Channel Hopping
-- [ ] Exportar credenciales (CSV/JSON)
-- [ ] Notificaciones por webhook
-- [ ] Modo offline con SD card
-- [ ] Captura de handshakes WPA2
+- [x] Automatic channel hopping
+- [x] Web dashboard with real-time logs
+- [ ] [CSV / JSON credential export](https://github.com/chrisq-dev/phantom-kit/issues/1)
+- [ ] [Webhook notifications (Discord, Slack)](https://github.com/chrisq-dev/phantom-kit/issues/2)
+- [ ] [Offline storage with SD card module](https://github.com/chrisq-dev/phantom-kit/issues/3)
+- [ ] [WPA2 handshake capture (PMKID)](https://github.com/chrisq-dev/phantom-kit/issues/4)
 
-## Disclaimer Legal
+Have a feature request? [Open an issue](https://github.com/chrisq-dev/phantom-kit/issues/new)
 
-Esta herramienta es exclusivamente para **fines educativos y auditorías de seguridad autorizadas**. El uso indebido es responsabilidad del usuario. Ver [docs/legal.md](docs/legal.md) para más detalles.
+---
 
-## Licencia
+## Legal Disclaimer
 
-MIT License - Ver [LICENSE](LICENSE) para más detalles.
+This tool is **exclusively for educational purposes and authorized security audits**.
 
-## Autor
+- Allowed: testing on your own networks, lab environments, audits with written authorization
+- Not allowed: use on networks or devices without explicit owner authorization
 
-Desarrollado con fines educativos y de concientización en ciberseguridad.
+Misuse of this tool may violate local and international laws. The author is not responsible for unauthorized use. See [docs/legal.md](docs/legal.md) for the full disclaimer.
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+Developed for educational purposes and security awareness.
+
+If this project was useful to you, consider starring it on GitHub.
+
+</div>
