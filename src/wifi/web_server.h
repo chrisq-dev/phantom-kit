@@ -45,6 +45,8 @@ private:
     void handleAPIProbe();
     void handleAPIEvilTwin();
     void handleAPIAutoPortal();
+    void handleAPIExportCSV();
+    void handleAPIExportReport();
     
     String getDashboardHTML();
     String getCSS();

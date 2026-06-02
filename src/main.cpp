@@ -63,6 +63,8 @@ void setup() {
         addLog("ERROR: LittleFS no se pudo montar");
     } else {
         addLog("LittleFS montado correctamente");
+        credStore.loadFromDisk();
+        addLog("Credenciales cargadas desde disco: " + String(credStore.getCount()));
     }
     
     apManager.begin(AP_SSID, AP_PASSWORD, AP_CHANNEL);

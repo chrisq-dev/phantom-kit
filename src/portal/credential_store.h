@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
+
+#define CREDENTIALS_FILE "/credentials.csv"
 
 struct Credential {
     String template_name;
@@ -21,11 +24,15 @@ public:
     void clear();
     String getHTMLTable();
 
+    // Persistencia en LittleFS
+    void loadFromDisk();
+
 private:
     Credential* credentials;
     int max_entries;
     int count;
     String formatTimestamp();
+    void appendToDisk(const Credential& c);
 };
 
 #endif
