@@ -11,6 +11,7 @@
 [![Framework](https://img.shields.io/badge/Framework-Arduino%20%2F%20PlatformIO-teal.svg)](https://platformio.org/)
 [![Release](https://img.shields.io/github/v/release/chrisq-dev/phantom-kit?color=brightgreen)](https://github.com/chrisq-dev/phantom-kit/releases)
 [![Issues](https://img.shields.io/github/issues/chrisq-dev/phantom-kit)](https://github.com/chrisq-dev/phantom-kit/issues)
+[![Build](https://github.com/chrisq-dev/phantom-kit/actions/workflows/build.yml/badge.svg)](https://github.com/chrisq-dev/phantom-kit/actions/workflows/build.yml)
 
 *Convierte tu ESP8266 en una plataforma autónoma de auditoría de seguridad Wi-Fi.*  
 *Sin infraestructura externa. Sin dependencias. Solo el chip.*

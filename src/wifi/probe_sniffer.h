@@ -22,6 +22,7 @@ public:
     String getDevicesJSON();
     int getDeviceCount();
     unsigned long getProbesCaptured();
+    void addDevice(const String& mac, const String& ssid, int rssi);  // called by promiscuous callback
 
 private:
     bool running;
@@ -34,7 +35,6 @@ private:
     void packetHandler(uint8_t* buf, uint16_t len);
     void parseProbeRequest(uint8_t* buf, uint16_t len);
     int findDevice(const String& mac);
-    void addDevice(const String& mac, const String& ssid, int rssi);
 };
 
 #endif

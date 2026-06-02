@@ -31,7 +31,17 @@ private:
     ProbeSnifferModule& probe;
     EvilTwinModule& evilTwin;
     AutoPortalModule& autoPortal;
-    
+
+    // Authentication
+    String sessionToken;
+    void generateSessionToken();
+    bool isAuthenticated();
+    void requireAuth();
+
+    void handleLogin();
+    void handleLoginPost();
+    void handleLogout();
+
     void handleDashboard();
     void handleAPIStatus();
     void handleAPICredentials();
@@ -47,10 +57,13 @@ private:
     void handleAPIAutoPortal();
     void handleAPIExportCSV();
     void handleAPIExportReport();
-    
+    void handleAPIStealth();
+
     String getDashboardHTML();
+    String getLoginHTML();
     String getCSS();
     String getJS();
 };
 
 #endif
+

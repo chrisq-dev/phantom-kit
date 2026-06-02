@@ -11,6 +11,8 @@ public:
     void setSSID(const String& ssid);
     void setPassword(const String& password);
     void restartAP();
+    void setStealthMode(bool enabled);
+    bool isStealthMode();
     String getSSID();
     int getClientCount();
     String getClientIP();
@@ -21,6 +23,8 @@ private:
     String password;
     int channel;
     bool running;
+    bool stealthMode;
 };
 
 #endif
+

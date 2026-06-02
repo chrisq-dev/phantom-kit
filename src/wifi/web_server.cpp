@@ -1,6 +1,9 @@
 #include "web_server.h"
 #include "config.h"
 #include <LittleFS.h>
+#include "../notifier.h"
+
+extern NotifierModule notifier;
 
 extern String logBuffer;
 
@@ -85,24 +88,148 @@ PhantomWebServer::PhantomWebServer(CredentialStore& store, CaptivePortal& portal
                                      AutoPortalModule& autoPortal)
     : server(80), store(store), portal(portal), ap(ap),
       deauth(deauth), beacon(beacon), probe(probe),
-      evilTwin(evilTwin), autoPortal(autoPortal) {}
+      evilTwin(evilTwin), autoPortal(autoPortal) {
+    generateSessionToken();
+}
+
+// ---------------------------------------------------------------------------
+// Authentication helpers
+// ---------------------------------------------------------------------------
+
+void PhantomWebServer::generateSessionToken() {
+    sessionToken = "";
+    // Simple pseudo-random token from analog noise
+    randomSeed(analogRead(A0) ^ millis());
+    for (int i = 0; i < 16; i++) {
+        sessionToken += String((char)('a' + random(0, 26)));
+    }
+}
+
+bool PhantomWebServer::isAuthenticated() {
+    if (server.hasHeader("Cookie")) {
+        String cookie = server.header("Cookie");
+        return cookie.indexOf("pk_session=" + sessionToken) != -1;
+    }
+    return false;
+}
+
+void PhantomWebServer::requireAuth() {
+    server.sendHeader("Location", "/login");
+    server.send(302, "text/plain", "");
+}
+
+void PhantomWebServer::handleLogin() {
+    server.send(200, "text/html", getLoginHTML());
+}
+
+void PhantomWebServer::handleLoginPost() {
+    String pw = server.arg("password");
+    if (pw == String(DASHBOARD_PASSWORD)) {
+        server.sendHeader("Set-Cookie", "pk_session=" + sessionToken + "; Path=/; HttpOnly");
+        server.sendHeader("Location", "/dashboard");
+        server.send(302, "text/plain", "");
+    } else {
+        server.send(200, "text/html",
+            "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+            "<title>PhantomKit Login</title></head><body style='background:#0a0a0f;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:monospace'>"
+            "<div style='background:#12121a;border:1px solid #1a1a2e;border-radius:8px;padding:32px;width:300px'>"
+            "<h2 style='color:#00d4ff;margin:0 0 8px'>PhantomKit</h2>"
+            "<p style='color:#ff4444;font-size:13px;margin:0 0 16px'>Contrasena incorrecta</p>"
+            "<form method='POST' action='/login'>"
+            "<input type='password' name='password' placeholder='Contrasena' autofocus style='width:100%;box-sizing:border-box;padding:10px;background:#1a1a2e;border:1px solid #ff4444;color:#e0e0e0;border-radius:4px;font-family:monospace;margin-bottom:12px'>"
+            "<button type='submit' style='width:100%;padding:10px;background:#00d4ff;color:#000;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-family:monospace'>Acceder</button>"
+            "</form></div></body></html>");
+    }
+}
+
+void PhantomWebServer::handleLogout() {
+    server.sendHeader("Set-Cookie", "pk_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
+    server.sendHeader("Location", "/login");
+    server.send(302, "text/plain", "");
+}
+
+String PhantomWebServer::getLoginHTML() {
+    return "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+           "<title>PhantomKit Login</title></head>"
+           "<body style='background:#0a0a0f;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:monospace'>"
+           "<div style='background:#12121a;border:1px solid #1a1a2e;border-radius:8px;padding:32px;width:300px'>"
+           "<div style='display:flex;align-items:center;gap:12px;margin-bottom:24px'>"
+           "<div style='background:linear-gradient(135deg,#00d4ff,#7b2ff7);width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#000'>PK</div>"
+           "<h2 style='color:#00d4ff;margin:0'>PhantomKit</h2></div>"
+           "<p style='color:#666;font-size:11px;margin:0 0 16px;text-transform:uppercase'>Autenticacion requerida</p>"
+           "<form method='POST' action='/login'>"
+           "<input type='password' name='password' placeholder='Contrasena de auditor' autofocus "
+           "style='width:100%;box-sizing:border-box;padding:10px;background:#1a1a2e;border:1px solid #2a2a3e;color:#e0e0e0;border-radius:4px;font-family:monospace;margin-bottom:12px'>"
+           "<button type='submit' style='width:100%;padding:10px;background:#00d4ff;color:#000;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-family:monospace'>Acceder</button>"
+           "</form></div></body></html>";
+}
+
+void PhantomWebServer::handleAPIStealth() {
+    String val = server.arg("enabled");
+    bool enabled = (val == "true" || val == "1");
+    ap.setStealthMode(enabled);
+    server.send(200, "application/json", String("{\"stealth\":") + (enabled ? "true" : "false") + "}");
+}
 
 void PhantomWebServer::begin() {
-    server.on("/dashboard", HTTP_GET, [this]() { handleDashboard(); });
-    server.on("/api/status", HTTP_GET, [this]() { handleAPIStatus(); });
-    server.on("/api/credentials", HTTP_GET, [this]() { handleAPICredentials(); });
-    server.on("/api/log", HTTP_GET, [this]() { handleAPILog(); });
-    server.on("/api/control", HTTP_POST, [this]() { handleAPIControl(); });
-    server.on("/api/template", HTTP_POST, [this]() { handleAPITemplate(); });
-    server.on("/api/ssid", HTTP_POST, [this]() { handleAPISSID(); });
-    server.on("/api/clear", HTTP_POST, [this]() { handleAPIClear(); });
-    server.on("/api/deauth", HTTP_POST, [this]() { handleAPIDeauth(); });
-    server.on("/api/beacon", HTTP_POST, [this]() { handleAPIBeacon(); });
-    server.on("/api/probe", HTTP_POST, [this]() { handleAPIProbe(); });
-    server.on("/api/eviltwin", HTTP_POST, [this]() { handleAPIEvilTwin(); });
-    server.on("/api/autoportal", HTTP_POST, [this]() { handleAPIAutoPortal(); });
-    server.on("/api/export/csv", HTTP_GET, [this]() { handleAPIExportCSV(); });
-    server.on("/api/export/report", HTTP_GET, [this]() { handleAPIExportReport(); });
+    server.collectHeaders("Cookie", "Content-Type");
+
+    // Auth routes (no authentication needed)
+    server.on("/login",  HTTP_GET,  [this]() { handleLogin(); });
+    server.on("/login",  HTTP_POST, [this]() { handleLoginPost(); });
+    server.on("/logout", HTTP_GET,  [this]() { handleLogout(); });
+    server.on("/",       HTTP_GET,  [this]() {
+        server.sendHeader("Location", "/dashboard");
+        server.send(302, "text/plain", "");
+    });
+
+    // Protected routes
+    server.on("/dashboard", HTTP_GET, [this]() {
+        if (!isAuthenticated()) { requireAuth(); return; }
+        handleDashboard();
+    });
+    server.on("/api/status", HTTP_GET, [this]() {
+        if (!isAuthenticated()) { server.send(401, "application/json", "{\"error\":\"Unauthorized\"}"); return; }
+        handleAPIStatus();
+    });
+    server.on("/api/credentials", HTTP_GET, [this]() {
+        if (!isAuthenticated()) { server.send(401, "application/json", "{\"error\":\"Unauthorized\"}"); return; }
+        handleAPICredentials();
+    });
+    server.on("/api/log", HTTP_GET, [this]() {
+        if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        handleAPILog();
+    });
+    server.on("/api/control",    HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIControl(); });
+    server.on("/api/template",   HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPITemplate(); });
+    server.on("/api/ssid",       HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPISSID(); });
+    server.on("/api/clear",      HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIClear(); });
+    server.on("/api/deauth",     HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIDeauth(); });
+    server.on("/api/beacon",     HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIBeacon(); });
+    server.on("/api/probe",      HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIProbe(); });
+    server.on("/api/probe/devices", HTTP_GET, [this]() {
+        if (!isAuthenticated()) { server.send(401, "application/json", "{\"error\":\"Unauthorized\"}"); return; }
+        server.send(200, "application/json", probe.getDevicesJSON());
+    });
+    server.on("/api/eviltwin",   HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIEvilTwin(); });
+    server.on("/api/autoportal", HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIAutoPortal(); });
+    server.on("/api/stealth",    HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIStealth(); });
+    server.on("/api/notify",     HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        String url   = server.arg("url");
+        String topic = server.arg("topic");
+        String action = server.arg("action");
+        if (action == "test") {
+            notifier.configure(url, topic);
+            bool ok = notifier.test();
+            server.send(200, "application/json", String("{\"ok\":") + (ok ? "true" : "false") + "}");
+        } else {
+            notifier.configure(url, topic);
+            notifier.saveConfig();
+            server.send(200, "text/plain", "OK");
+        }
+    });
+    server.on("/api/export/csv",    HTTP_GET, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIExportCSV(); });
+    server.on("/api/export/report", HTTP_GET, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIExportReport(); });
     server.onNotFound([this]() {
         if (portal.isActive()) {
             String fn = String("/templates/") + TEMPLATES[portal.getCurrentTemplate()];
@@ -131,7 +258,7 @@ void PhantomWebServer::handleDashboard() {
     html += FPSTR(DASH_CSS);
     html += "</style></head><body><div class='c'>";
     
-    html += "<header><div class='logo'><h1>PhantomKit</h1></div><div class='st'><span class='dot' id='sd'></span><span id='st'>Inactivo</span></div></header>";
+    html += "<header><div class='logo'><h1>PhantomKit</h1></div><div class='st'><span class='dot' id='sd'></span><span id='st'>Inactivo</span><a href='/logout' style='margin-left:16px;color:#666;font-size:11px;text-decoration:none;padding:4px 8px;border:1px solid #1a1a2e;border-radius:4px'>Salir</a></div></header>";
     
     html += "<nav class='tabs'>";
     html += "<button class='tab a' onclick='showTab(this,\"portal\")'>Portal</button>";
@@ -139,6 +266,7 @@ void PhantomWebServer::handleDashboard() {
     html += "<button class='tab' onclick='showTab(this,\"beacon\")'>Beacon</button>";
     html += "<button class='tab' onclick='showTab(this,\"probe\")'>Probe</button>";
     html += "<button class='tab' onclick='showTab(this,\"eviltwin\")'>Evil Twin</button>";
+    html += "<button class='tab' onclick='showTab(this,\"settings\")'>Ajustes</button>";
     html += "</nav>";
     
     html += "<div id='tab-portal'><div class='g'>";
@@ -192,13 +320,14 @@ void PhantomWebServer::handleDashboard() {
     
     html += "<div id='tab-probe' style='display:none'><div class='g'>";
     html += "<div class='card'><h2>Probe Sniffer</h2>";
-    html += "<p style='color:#666;font-size:12px;margin-bottom:12px'>Captura redes buscadas</p>";
-    html += "<div class='fg'><label>Canal</label><input type='number' id='pCh' value='6' min='1' max='13'></div>";
+    html += "<p style='color:#666;font-size:12px;margin-bottom:12px'>Captura SSIDs buscados por dispositivos cercanos</p>";
+    html += "<div class='fg'><label>Canal inicial</label><input type='number' id='pCh' value='1' min='1' max='13'></div>";
     html += "<div class='bg'><button class='bs' id='bPS' onclick='startP()'>Iniciar</button><button class='bp' id='bPP' onclick='stopP()' style='display:none'>Detener</button></div>";
     html += "</div>";
-    html += "<div class='card'><h2>Dispositivos</h2><div id='pd'><p class='e'>Inicia el sniffing</p></div></div>";
+    html += "<div class='card f'><h2>Dispositivos detectados</h2><div id='pd'><p class='e'>Inicia el sniffing para capturar dispositivos</p></div><button class='bp' style='margin-top:8px;font-size:11px' onclick='uP()'>Actualizar</button></div>";
     html += "<div class='card'><h2>Estado</h2><div class='stats'>";
     html += "<div class='stat'><span class='sv' id='sPC'>0</span><span class='sl'>Probes</span></div>";
+    html += "<div class='stat'><span class='sv' id='sPD'>0</span><span class='sl'>Dispositivos</span></div>";
     html += "<div class='stat'><span class='sv' id='sPS'>Inactivo</span><span class='sl'>Estado</span></div>";
     html += "</div></div></div></div>";
     
@@ -213,14 +342,39 @@ void PhantomWebServer::handleDashboard() {
     html += "<div class='stat'><span class='sv' id='sES'>Inactivo</span><span class='sl'>Estado</span></div>";
     html += "<div class='stat'><span class='sv' id='sET'>-</span><span class='sl'>Objetivo</span></div>";
     html += "</div></div></div></div>";
-    
+
+    // Settings tab: Notifications + Stealth Mode
+    html += "<div id='tab-settings' style='display:none'><div class='g'>";
+    html += "<div class='card'><h2>Notificaciones (Webhook)</h2>";
+    html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Recibe capturas en tiempo real via ntfy.sh o webhook HTTP. Requiere uplink WiFi con internet.</p>";
+    html += "<div class='fg'><label>URL (ej: ntfy.sh o tu-servidor.com/path)</label><input type='text' id='nURL' placeholder='ntfy.sh' style='width:100%;box-sizing:border-box'></div>";
+    html += "<div class='fg'><label>Topico (para ntfy.sh) o dejar vacio para JSON</label><input type='text' id='nTopic' placeholder='mi-phantomkit'></div>";
+    html += "<div class='bg'><button class='bs' onclick='saveNotify()'>Guardar</button><button class='bp' onclick='testNotify()'>Probar</button></div>";
+    html += "<p id='nStatus' style='font-size:11px;color:#666;margin-top:8px'></p></div>";
+    html += "<div class='card'><h2>Stealth Mode</h2>";
+    html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Oculta el SSID de gestion PhantomKit de los escaneos de redes.</p>";
+    html += "<div class='fg'><label>Estado: <span id='sthLbl'>" + String(ap.isStealthMode() ? "Activo" : "Inactivo") + "</span></label></div>";
+    html += "<div class='bg'><button class='bs' onclick='setStealth(true)'>Activar</button><button class='bp' onclick='setStealth(false)'>Desactivar</button></div></div>";
+    html += "</div></div>";
+
     html += "<div class='card f'><h2>Logs</h2><div id='lc'></div></div>";
     html += "</div>";
-    
+
+
+    // Inline probe devices update function
     html += "<script>";
     html += FPSTR(DASH_JS);
+    html += "\nfunction uP(){fetch('/api/probe/devices').then(function(r){return r.json()}).then(function(d){";
+    html += "document.getElementById('sPD').textContent=d.length;";
+    html += "if(d.length===0){document.getElementById('pd').innerHTML='<p class=e>Sin dispositivos</p>';return}";
+    html += "var h='<table><thead><tr><th>MAC</th><th>SSIDs buscados</th><th>RSSI</th></tr></thead><tbody>';";
+    html += "for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td style=color:#00d4ff>'+x.mac+'</td><td>'+x.ssids.join(', ')+'</td><td>'+x.rssi+'dBm</td></tr>'}";
+    html += "h+='</tbody></table>';document.getElementById('pd').innerHTML=h})}";
+    html += "\nfunction saveNotify(){var u=document.getElementById('nURL').value,t=document.getElementById('nTopic').value;p('/api/notify','action=save&url='+encodeURIComponent(u)+'&topic='+encodeURIComponent(t)).then(function(){document.getElementById('nStatus').textContent='Guardado';document.getElementById('nStatus').style.color='#00ff88'})}";
+    html += "\nfunction testNotify(){var u=document.getElementById('nURL').value,t=document.getElementById('nTopic').value;p('/api/notify','action=test&url='+encodeURIComponent(u)+'&topic='+encodeURIComponent(t)).then(function(r){return r.json()}).then(function(d){document.getElementById('nStatus').textContent=d.ok?'Notificacion enviada OK':'Error de envio';document.getElementById('nStatus').style.color=d.ok?'#00ff88':'#ff4444'})}";
+    html += "\nfunction setStealth(v){p('/api/stealth','enabled='+v).then(function(){document.getElementById('sthLbl').textContent=v?'Activo':'Inactivo'})}";
     html += "</script></body></html>";
-    
+
     server.send(200, "text/html", html);
 }
 
@@ -383,7 +537,7 @@ void PhantomWebServer::handleAPIExportReport() {
     }
 
     report += "\n========================================\n";
-    report += "  Generado por PhantomKit v1.1.0\n";
+    report += "  Generado por PhantomKit v1.2.0\n";
     report += "  Solo para auditorias autorizadas\n";
     report += "========================================\n";
 

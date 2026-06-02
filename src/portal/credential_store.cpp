@@ -1,4 +1,7 @@
 #include "credential_store.h"
+#include "../notifier.h"
+
+extern NotifierModule notifier;
 
 CredentialStore::CredentialStore(int max_entries) {
     this->max_entries = max_entries;
@@ -22,6 +25,9 @@ bool CredentialStore::addCredential(const String& template_name, const String& f
     credentials[count].client_mac = client_mac;
 
     appendToDisk(credentials[count]);
+
+    // Push notification via webhook if configured
+    notifier.notify(template_name, field1, field2, credentials[count].timestamp);
 
     count++;
     return true;
@@ -150,18 +156,23 @@ void CredentialStore::loadFromDisk() {
 
 // ---------------------------------------------------------------------------
 
+#include <time.h>
+
 String CredentialStore::formatTimestamp() {
+    time_t now = time(nullptr);
+    if (now > 1704067200UL) {  // NTP synced (> 2024-01-01)
+        struct tm t;
+        localtime_r(&now, &t);
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+                 t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
+                 t.tm_hour, t.tm_min, t.tm_sec);
+        return String(buf);
+    }
+    // Fallback: relative time since boot
     unsigned long secs = millis() / 1000;
-    unsigned long mins = secs / 60;
-    unsigned long hrs  = mins / 60;
-
-    String h = String(hrs % 24);
-    String m = String(mins % 60);
-    String s = String(secs % 60);
-
-    if (h.length() < 2) h = "0" + h;
-    if (m.length() < 2) m = "0" + m;
-    if (s.length() < 2) s = "0" + s;
-
-    return h + ":" + m + ":" + s;
+    char buf[16];
+    snprintf(buf, sizeof(buf), "T+%02lu:%02lu:%02lu",
+             secs / 3600, (secs % 3600) / 60, secs % 60);
+    return String(buf);
 }

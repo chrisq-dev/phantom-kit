@@ -1,11 +1,16 @@
 #include "ap_manager.h"
 #include "config.h"
 
+extern "C" {
+    #include "user_interface.h"
+}
+
 APManager::APManager() {
     ssid = AP_SSID;
     password = AP_PASSWORD;
     channel = AP_CHANNEL;
     running = false;
+    stealthMode = STEALTH_MODE;
 }
 
 void APManager::begin(const String& ssid, const String& password, int channel) {
@@ -21,8 +26,16 @@ void APManager::begin(const String& ssid, const String& password, int channel) {
     
     WiFi.softAP(ssid.c_str(), password.c_str(), channel);
     running = true;
-    
-    Serial.printf("[AP] SSID: %s\n", ssid.c_str());
+
+    // Apply stealth mode via SDK (hide SSID from beacon frames)
+    if (stealthMode) {
+        struct softap_config conf;
+        wifi_softap_get_config(&conf);
+        conf.ssid_hidden = 1;
+        wifi_softap_set_config(&conf);
+    }
+
+    Serial.printf("[AP] SSID: %s%s\n", ssid.c_str(), stealthMode ? " (hidden)" : "");
     Serial.printf("[AP] IP: %s\n", WiFi.softAPIP().toString().c_str());
     Serial.printf("[AP] Canal: %d\n", channel);
 }
@@ -55,4 +68,19 @@ String APManager::getClientIP() {
 
 bool APManager::isRunning() {
     return running;
+}
+
+void APManager::setStealthMode(bool enabled) {
+    stealthMode = enabled;
+    if (running) {
+        struct softap_config conf;
+        wifi_softap_get_config(&conf);
+        conf.ssid_hidden = enabled ? 1 : 0;
+        wifi_softap_set_config(&conf);
+        Serial.printf("[AP] Stealth mode: %s\n", enabled ? "ON" : "OFF");
+    }
+}
+
+bool APManager::isStealthMode() {
+    return stealthMode;
 }

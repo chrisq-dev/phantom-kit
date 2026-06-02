@@ -12,6 +12,9 @@ struct DeauthTarget {
     int clientCount;
 };
 
+// Max number of client MACs to track for unicast deauth
+#define MAX_DEAUTH_CLIENTS 20
+
 class DeauthModule {
 public:
     DeauthModule();
@@ -23,8 +26,10 @@ public:
     String getTargetsJSON();
     int getTargetCount();
     unsigned long getFramesSent();
+    int getClientCount();
     void scanTargets();
     void scanAllChannels();
+    void scanClients(uint16_t windowMs = 800);
     String getActiveTarget();
     int getTargetChannel();
 
@@ -37,9 +42,15 @@ private:
     DeauthTarget targets[20];
     int targetCount;
     String activeTarget;
-    
+
+    // Unicast client list
+    uint8_t clientMACs[MAX_DEAUTH_CLIENTS][6];
+    int clientCount;
+
     void sendDeauthFrame(const uint8_t* bssid, const uint8_t* clientMac);
+    bool parseBSSID(const String& bssidStr, uint8_t* out);
     void parseScanResult();
 };
 
 #endif
+
