@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-06-01
 
-### 🎉 Initial Release
+### Initial Release
 
 This is the first stable release of ESP8266 PhantomKit — a self-contained Wi-Fi security auditing platform built on the ESP8266 microcontroller.
 
