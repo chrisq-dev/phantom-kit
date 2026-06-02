@@ -1,0 +1,136 @@
+name: Bug Report
+description: Something is not working as expected on your hardware
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report! Please fill out all sections as completely as possible.
+        **Do not include real captured credentials or data from unauthorized networks.**
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I searched existing issues and this has not been reported before
+          required: true
+        - label: I am running the latest release of PhantomKit
+          required: true
+        - label: This bug occurs on physical hardware (not just a compile error)
+          required: false
+
+  - type: dropdown
+    id: board
+    attributes:
+      label: Board
+      description: Which ESP8266 board are you using?
+      options:
+        - NodeMCU v2 (ESP-12E) — default / recommended
+        - NodeMCU v3 (ESP-12F)
+        - Wemos D1 Mini
+        - Wemos D1 Mini Pro
+        - ESP-01 (limited flash — may not work)
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected module
+      description: Which PhantomKit feature is broken?
+      multiple: true
+      options:
+        - Dashboard / Web server
+        - Dashboard authentication
+        - Captive portal / Evil Portal
+        - Credential capture / storage
+        - Deauth attack
+        - Beacon flood
+        - Probe sniffer
+        - Karma attack
+        - Evil Twin
+        - PMKID capture
+        - Webhook notifications
+        - NTP / timestamps
+        - Stealth mode
+        - Emergency wipe
+        - Auto-Attack
+        - Build / compile error
+        - LittleFS / filesystem
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: PhantomKit version
+      placeholder: "e.g. v1.3.0"
+    validations:
+      required: true
+
+  - type: input
+    id: pio-version
+    attributes:
+      label: PlatformIO version
+      placeholder: "Output of: pio --version"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: What happened? What did you expect to happen?
+      placeholder: |
+        The probe sniffer starts successfully but the device table never populates, even though nearby devices are sending probe requests verified with Wireshark.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Flash v1.3.0 to NodeMCU v2
+        2. Connect to PhantomKit network
+        3. Open dashboard → Probe tab
+        4. Press Iniciar with channel 6
+        5. Wait 2 minutes — table stays empty
+    validations:
+      required: true
+
+  - type: textarea
+    id: serial
+    attributes:
+      label: Serial monitor output
+      description: Paste the full output from `pio device monitor --baud 115200` during the issue. Remove any sensitive data.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant config.h settings
+      description: Share any non-default settings from config.h (remove passwords).
+      render: cpp
+      placeholder: |
+        #define AP_CHANNEL 11
+        #define STEALTH_MODE true
+        // UPLINK_SSID is set
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else that might be relevant — photos, logic analyzer captures, Wireshark pcaps from a lab environment, etc.
+    validations:
+      required: false

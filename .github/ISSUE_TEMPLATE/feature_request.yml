@@ -1,0 +1,98 @@
+name: Feature Request
+description: Suggest a new attack module, dashboard feature, or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! PhantomKit is always looking to expand its capabilities.
+        Please provide as much detail as possible so we can evaluate the idea.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I searched existing issues and this has not been requested before
+          required: true
+        - label: This feature would be used in authorized security audits or research
+          required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature category
+      options:
+        - New attack module (e.g. new 802.11 technique)
+        - New portal template
+        - Dashboard / UI improvement
+        - New export format or reporting
+        - Hardware support (new board or platform)
+        - Performance or memory optimization
+        - Documentation
+        - Developer tooling / CI
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the audit scenario or research gap this feature would address.
+      placeholder: |
+        During a WPA3-only network audit there is no way to capture any usable handshake material. It would be useful to detect WPA3 networks and fall back to a targeted Evil Twin with matching SSID instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you implement this? Include relevant 802.11 frame types, SDK calls, or references if you know them.
+      placeholder: |
+        Add a new `wpa3_scanner.cpp` module that uses promiscuous mode to detect WPA3 RSN IE capability bits (bit 12 MFP required). When detected, automatically configure the Evil Twin with the same SSID and activate the portal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any other approaches? Why are they less suitable?
+    validations:
+      required: false
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Target hardware
+      description: Does this feature require specific hardware? (e.g. ESP32 only, external antenna)
+      placeholder: "Works on any ESP8266 NodeMCU v2"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: willing-to-pr
+    attributes:
+      label: Would you be willing to submit a PR for this?
+      options:
+        - "Yes — I can implement this"
+        - "Maybe — I could use some guidance"
+        - "No — just suggesting the idea"
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Link to relevant papers, tools, blog posts, or RFC/IEEE specs.
+      placeholder: |
+        - https://hashcat.net/forum/thread-7717.html (PMKID attack — Jens Steube)
+        - https://www.aircrack-ng.org/doku.php?id=deauthentication
+    validations:
+      required: false
