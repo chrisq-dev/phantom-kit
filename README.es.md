@@ -207,21 +207,52 @@ lib_deps =
 
 ## Roadmap
 
-- [x] Evil Portal con 8 templates
-- [x] Deauth Attack
-- [x] Beacon Flood
-- [x] Probe Request Sniffer
-- [x] Evil Twin
-- [x] Auto-Portal
-- [x] Channel Hopping automático
-- [x] Dashboard web con logs en tiempo real
-- [x] Persistencia offline de credenciales (LittleFS)
-- [x] [Exportar credenciales a CSV / JSON](https://github.com/chrisq-dev/phantom-kit/issues/1)
-- [ ] [Notificaciones por webhook (Discord, Slack)](https://github.com/chrisq-dev/phantom-kit/issues/2)
-- [ ] [Almacenamiento offline con módulo SD](https://github.com/chrisq-dev/phantom-kit/issues/3)
-- [ ] [Captura de handshakes WPA2 (PMKID)](https://github.com/chrisq-dev/phantom-kit/issues/4)
+### Completado
 
-¿Tienes una idea o feature request? [Abre un issue](https://github.com/chrisq-dev/phantom-kit/issues/new)
+| Version | Feature |
+|---------|---------|
+| v1.0 | Evil Portal con 8 templates (Facebook, Instagram, Microsoft, X, Google, WiFi Login, Netflix, WhatsApp) |
+| v1.0 | Deauth Attack — frames de deautenticacion IEEE 802.11 |
+| v1.0 | Beacon Flood — mas de 50 SSIDs falsos |
+| v1.0 | Probe Request Sniffer — captura pasiva |
+| v1.0 | Evil Twin — clonacion de SSID/BSSID |
+| v1.0 | Auto-Portal — escaneo del entorno y recomendacion de template |
+| v1.0 | Channel Hopping automatico (canales 1 al 13) |
+| v1.0 | Dashboard web con tabla de credenciales y logs en tiempo real |
+| v1.1 | Persistencia offline de credenciales (LittleFS) |
+| v1.1 | Exportacion a CSV y reporte de sesion |
+| v1.2 | Autenticacion del dashboard (token de sesion, cookie HttpOnly) |
+| v1.2 | Parsing real de frames 802.11 en el Probe Sniffer |
+| v1.2 | Deauth Unicast (frames dirigidos AP→Cliente y Cliente→AP) |
+| v1.2 | Notificaciones webhook (ntfy.sh y endpoints personalizados) |
+| v1.2 | Timestamps reales via NTP |
+| v1.2 | Modo Stealth (SSID de gestion oculto) |
+| v1.2 | CI con GitHub Actions |
+| v1.3 | Auto-Attack Chain (un clic: escaneo, deauth y portal) |
+| v1.3 | Karma Attack (clonado automatico de SSIDs detectados en probes) |
+| v1.3 | Captura de PMKID — exportacion en formato hashcat 22000 |
+| v1.3 | Lookup de fabricante OUI (tabla en PROGMEM) |
+| v1.3 | Portal Auto-Match (seleccion de template por palabras clave) |
+| v1.3 | Emergency Wipe (mantener GPIO0 + endpoint /api/panic) |
+| v1.3 | Notificacion toast de credenciales en tiempo real |
+
+### Planificado
+
+**v1.4 — Tooling e integracion**
+
+- [ ] `phantomkit-pull` — CLI en Python para descargar PMKIDs y credenciales del dashboard y pasarlos directamente a hashcat o un archivo local
+- [ ] Integracion con bot de Telegram — alertas de credenciales en tiempo real con mensajes formateados
+- [ ] Guia de bateria + TP4056 — operacion portatil completamente autonoma
+- [ ] Soporte de modulo SD — almacenamiento de credenciales independiente del tamano de LittleFS
+
+**v2.0 — Puerto a ESP32**
+
+- [ ] Portar el firmware a ESP32 — 520 KB de RAM, doble nucleo, elimina el techo de memoria actual
+- [ ] Escaneo BLE — detectar dispositivos Bluetooth (auriculares, teclados, relojes inteligentes) junto con probes Wi-Fi
+- [ ] Deauth y portal simultaneos — ejecutar ambos en nucleos separados sin conflictos de modo promiscuo
+- [ ] Tabla OUI mas grande y mas templates de portal sin restricciones de PROGMEM
+
+¿Tienes una idea o feature request? [Abre un issue](https://github.com/chrisq-dev/phantom-kit/issues/new/choose)
 
 ---
 

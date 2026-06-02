@@ -207,21 +207,52 @@ lib_deps =
 
 ## Roadmap
 
-- [x] Evil Portal with 8 templates
-- [x] Deauth Attack
-- [x] Beacon Flood
-- [x] Probe Request Sniffer
-- [x] Evil Twin
-- [x] Auto-Portal
-- [x] Automatic channel hopping
-- [x] Web dashboard with real-time logs
-- [x] Offline credential persistence (LittleFS)
-- [x] [CSV / JSON credential export](https://github.com/chrisq-dev/phantom-kit/issues/1)
-- [ ] [Webhook notifications (Discord, Slack)](https://github.com/chrisq-dev/phantom-kit/issues/2)
-- [ ] [Offline storage with SD card module](https://github.com/chrisq-dev/phantom-kit/issues/3)
-- [ ] [WPA2 handshake capture (PMKID)](https://github.com/chrisq-dev/phantom-kit/issues/4)
+### Completed
 
-Have a feature request? [Open an issue](https://github.com/chrisq-dev/phantom-kit/issues/new)
+| Version | Feature |
+|---------|--------|
+| v1.0 | Evil Portal with 8 templates (Facebook, Instagram, Microsoft, X, Google, WiFi Login, Netflix, WhatsApp) |
+| v1.0 | Deauth Attack — IEEE 802.11 deauthentication frames |
+| v1.0 | Beacon Flood — 50+ fake SSIDs |
+| v1.0 | Probe Request Sniffer — passive capture |
+| v1.0 | Evil Twin — SSID/BSSID cloning |
+| v1.0 | Auto-Portal — environment scan and template recommendation |
+| v1.0 | Automatic channel hopping (channels 1–13) |
+| v1.0 | Web dashboard with real-time credential table and logs |
+| v1.1 | Offline credential persistence (LittleFS) |
+| v1.1 | CSV and session report export |
+| v1.2 | Dashboard authentication (session token, HttpOnly cookie) |
+| v1.2 | Real 802.11 frame parsing in Probe Sniffer |
+| v1.2 | Unicast Deauth (targeted AP→Client and Client→AP frames) |
+| v1.2 | Webhook notifications (ntfy.sh and custom endpoints) |
+| v1.2 | NTP real timestamps |
+| v1.2 | Stealth Mode (hidden management SSID) |
+| v1.2 | GitHub Actions CI |
+| v1.3 | Auto-Attack Chain (one-click: scan, deauth, portal) |
+| v1.3 | Karma Attack (auto-clone probed SSIDs) |
+| v1.3 | PMKID Capture — hashcat 22000 export |
+| v1.3 | OUI Manufacturer Lookup (PROGMEM table) |
+| v1.3 | Portal Auto-Match (keyword-based template selection) |
+| v1.3 | Emergency Wipe (GPIO0 hold + /api/panic endpoint) |
+| v1.3 | Real-time credential toast notification |
+
+### Planned
+
+**v1.4 — Tooling and integration**
+
+- [ ] `phantomkit-pull` — Python CLI to pull captured PMKIDs and credentials from the dashboard and pipe directly into hashcat or a local file
+- [ ] Telegram bot integration — real-time credential alerts with formatted messages
+- [ ] Battery + TP4056 wiring guide — fully portable standalone operation
+- [ ] SD card module support — offline credential storage independent of LittleFS size
+
+**v2.0 — ESP32 port**
+
+- [ ] Port firmware to ESP32 — 520 KB RAM, dual core, eliminates the current memory ceiling
+- [ ] BLE scanning — detect Bluetooth devices (headphones, keyboards, smartwatches) alongside Wi-Fi probes
+- [ ] Simultaneous deauth + portal — run both on separate cores without promiscuous mode conflicts
+- [ ] Larger OUI table and more portal templates without PROGMEM constraints
+
+Have a feature request? [Open an issue](https://github.com/chrisq-dev/phantom-kit/issues/new/choose)
 
 ---
 
