@@ -214,7 +214,8 @@ lib_deps =
 - [x] Auto-Portal
 - [x] Automatic channel hopping
 - [x] Web dashboard with real-time logs
-- [ ] [CSV / JSON credential export](https://github.com/chrisq-dev/phantom-kit/issues/1)
+- [x] Offline credential persistence (LittleFS)
+- [x] [CSV / JSON credential export](https://github.com/chrisq-dev/phantom-kit/issues/1)
 - [ ] [Webhook notifications (Discord, Slack)](https://github.com/chrisq-dev/phantom-kit/issues/2)
 - [ ] [Offline storage with SD card module](https://github.com/chrisq-dev/phantom-kit/issues/3)
 - [ ] [WPA2 handshake capture (PMKID)](https://github.com/chrisq-dev/phantom-kit/issues/4)

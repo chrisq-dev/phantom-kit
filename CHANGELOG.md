@@ -49,11 +49,22 @@ This is the first stable release of ESP8266 PhantomKit — a self-contained Wi-F
 
 ---
 
+## [1.1.0] - 2026-06-02
+
+### Added
+- **LittleFS Credential Storage** — persistent storage of captured credentials on the ESP8266 internal flash memory (`/credentials.csv`). Captured credentials now persist across device reboots and power cycles.
+- **CSV and Report Export** — download captured credentials directly from the Web UI dashboard as a `.csv` file or a formatted session report (`phantomkit_report.txt`).
+- **Enhanced Portal Templates**:
+  - **Facebook** — added a realistic password verification step, loading animation, and custom favicon.
+  - **Microsoft** — implemented a realistic two-step credentials entry flow (email then password) with a dynamic avatar.
+  - **WiFi Login** — redesigned as a corporate captive portal (Cisco/Aruba style) with a verification progress indicator.
+
+---
+
 ## [Unreleased]
 
 Features planned for upcoming releases:
 
-- [ ] **CSV / JSON export** — download captured credentials as a file
 - [ ] **Webhook notifications** — push captures to Discord, Slack, or custom endpoint
 - [ ] **SD card support** — offline credential storage on SD module
 - [ ] **WPA2 handshake capture** — passive PMKID / 4-way handshake sniffing
@@ -62,4 +73,5 @@ Features planned for upcoming releases:
 
 ---
 
+[1.1.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.1.0
 [1.0.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.0.0
