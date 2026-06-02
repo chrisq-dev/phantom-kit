@@ -16,6 +16,10 @@ public:
     String getScanResultsJSON();
     void analyzeResults();
 
+    // Returns best template index (0-7) based on SSID keyword matching
+    static int  suggestTemplate(const String& ssid);
+    static String getTemplateNameFor(const String& ssid);
+
 private:
     bool scanning;
     unsigned long lastScan;

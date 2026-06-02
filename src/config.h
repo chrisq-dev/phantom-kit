@@ -27,6 +27,21 @@
 #define DASHBOARD_PASSWORD "auditor123"
 
 // ---------------------------------------------------------------------------
+// Emergency Wipe
+// GPIO0 is the FLASH button on NodeMCU. Hold for GPIO_WIPE_HOLD_MS to wipe.
+// Set GPIO_WIPE_PIN to -1 to disable hardware wipe button.
+// ---------------------------------------------------------------------------
+#define GPIO_WIPE_PIN      0        // NodeMCU FLASH button
+#define GPIO_WIPE_HOLD_MS  3000     // Hold 3 seconds to wipe
+
+// ---------------------------------------------------------------------------
+// Karma Attack
+// When probe sniffer is active with karma enabled, the AP SSID will change
+// to match the first non-broadcast probe request detected.
+// ---------------------------------------------------------------------------
+#define KARMA_MODE_DEFAULT false    // Disabled by default, enable from dashboard
+
+// ---------------------------------------------------------------------------
 // Uplink WiFi (optional)
 // If set, the ESP8266 connects to this network in AP+STA mode to enable:
 //   - NTP real timestamps

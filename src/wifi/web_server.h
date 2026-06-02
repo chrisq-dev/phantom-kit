@@ -10,13 +10,14 @@
 #include "wifi/probe_sniffer.h"
 #include "wifi/evil_twin.h"
 #include "wifi/auto_portal.h"
+#include "wifi/pmkid_capture.h"
 
 class PhantomWebServer {
 public:
     PhantomWebServer(CredentialStore& store, CaptivePortal& portal, APManager& ap,
                      DeauthModule& deauth, BeaconFloodModule& beacon,
                      ProbeSnifferModule& probe, EvilTwinModule& evilTwin,
-                     AutoPortalModule& autoPortal);
+                     AutoPortalModule& autoPortal, PMKIDCaptureModule& pmkid);
     void begin();
     void handleClient();
     ESP8266WebServer& getServer() { return server; }
@@ -31,6 +32,7 @@ private:
     ProbeSnifferModule& probe;
     EvilTwinModule& evilTwin;
     AutoPortalModule& autoPortal;
+    PMKIDCaptureModule& pmkid;
 
     // Authentication
     String sessionToken;
@@ -58,6 +60,10 @@ private:
     void handleAPIExportCSV();
     void handleAPIExportReport();
     void handleAPIStealth();
+    void handleAPIAutoAttack();
+    void handleAPIKarma();
+    void handleAPIPMKID();
+    void handleAPIPanic();
 
     String getDashboardHTML();
     String getLoginHTML();
@@ -66,4 +72,5 @@ private:
 };
 
 #endif
+
 

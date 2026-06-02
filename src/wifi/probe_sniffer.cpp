@@ -1,4 +1,6 @@
 #include "probe_sniffer.h"
+#include "oui.h"
+#include "auto_portal.h"
 
 extern "C" {
     #include "user_interface.h"
@@ -86,6 +88,8 @@ ProbeSnifferModule::ProbeSnifferModule() {
     probesCaptured = 0;
     deviceCount = 0;
     lastChannelHop = 0;
+    karmaEnabled = false;
+    karmaCallback = nullptr;
 }
 
 void ProbeSnifferModule::begin() {
@@ -149,6 +153,7 @@ String ProbeSnifferModule::getDevicesJSON() {
         if (i > 0) json += ",";
         json += "{";
         json += "\"mac\":\"" + devices[i].mac + "\",";
+        json += "\"vendor\":\"" + devices[i].vendor + "\",";
         json += "\"rssi\":" + String(devices[i].rssi) + ",";
         json += "\"ssids\":[";
         for (int j = 0; j < devices[i].ssidCount && j < 10; j++) {
@@ -159,6 +164,25 @@ String ProbeSnifferModule::getDevicesJSON() {
     }
     json += "]";
     return json;
+}
+
+void ProbeSnifferModule::setKarmaMode(bool enabled, KarmaCallback cb) {
+    karmaEnabled = enabled;
+    karmaCallback = cb;
+    if (enabled) {
+        addLog("[KARMA] Modo Karma ACTIVO - responde a cualquier probe request");
+    } else {
+        addLog("[KARMA] Modo Karma desactivado");
+        karmaActiveSSID = "";
+    }
+}
+
+bool ProbeSnifferModule::isKarmaActive() const {
+    return karmaEnabled;
+}
+
+String ProbeSnifferModule::getKarmaSSID() const {
+    return karmaActiveSSID;
 }
 
 int ProbeSnifferModule::findDevice(const String& mac) {
@@ -187,14 +211,24 @@ void ProbeSnifferModule::addDevice(const String& mac, const String& ssid, int rs
         devices[idx].rssi = rssi;
         devices[idx].lastSeen = millis();
     } else if (deviceCount < 50) {
-        // New device
-        devices[deviceCount].mac = mac;
-        devices[deviceCount].ssids[0] = ssid;
-        devices[deviceCount].ssidCount = 1;
-        devices[deviceCount].rssi = rssi;
-        devices[deviceCount].lastSeen = millis();
+        // New device — OUI lookup
+        uint8_t macBytes[3];
+        sscanf(mac.c_str(), "%hhx:%hhx:%hhx", &macBytes[0], &macBytes[1], &macBytes[2]);
+
+        devices[deviceCount].mac         = mac;
+        devices[deviceCount].vendor      = lookupOUI(macBytes);
+        devices[deviceCount].ssids[0]    = ssid;
+        devices[deviceCount].ssidCount   = 1;
+        devices[deviceCount].rssi        = rssi;
+        devices[deviceCount].lastSeen    = millis();
         deviceCount++;
-        addLog("[PROBE] Nuevo dispositivo: " + mac + " buscando: " + ssid);
+        addLog("[PROBE] Nuevo: " + mac + " (" + devices[deviceCount - 1].vendor + ") -> " + ssid);
+
+        // Karma: trigger callback for first probe of this SSID from any device
+        if (karmaEnabled && karmaCallback && ssid != "[broadcast]") {
+            int tpl = AutoPortalModule::suggestTemplate(ssid);
+            karmaCallback(ssid, tpl);
+        }
     }
     probesCaptured++;
 }

