@@ -68,8 +68,8 @@ Customize compile-time settings in `src/config.h`:
 
 ```cpp
 #define AP_SSID            "PhantomKit"
-#define AP_PASSWORD        "phantom123"
-#define DASHBOARD_PASSWORD "auditor123"
+#define AP_PASSWORD        "change-me-phantomkit"
+#define DASHBOARD_PASSWORD "change-me-auditor"
 #define UPLINK_SSID        ""          // Optional — enables NTP and webhooks
 #define UPLINK_PASSWORD    ""
 ```

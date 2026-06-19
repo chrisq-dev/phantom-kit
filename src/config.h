@@ -7,7 +7,7 @@
 // WiFi AP Configuration (portal management network)
 // ---------------------------------------------------------------------------
 #define AP_SSID        "PhantomKit"
-#define AP_PASSWORD    "phantom123"
+#define AP_PASSWORD    "change-me-phantomkit"
 #define AP_CHANNEL     6
 #define AP_MAX_CLIENTS 10
 #define AP_IP_ADDRESS  192, 168, 4, 1
@@ -24,7 +24,14 @@
 // Dashboard Authentication
 // Separate from the AP password. Required to access /dashboard.
 // ---------------------------------------------------------------------------
-#define DASHBOARD_PASSWORD "auditor123"
+#define DASHBOARD_PASSWORD "change-me-auditor"
+
+// ---------------------------------------------------------------------------
+// Portfolio / demo safety
+// Redacts captured fields in dashboard/API responses by default. Disable only
+// inside an authorized lab when you explicitly need raw collected values.
+// ---------------------------------------------------------------------------
+#define DASHBOARD_REDACT_CREDENTIALS true
 
 // ---------------------------------------------------------------------------
 // Emergency Wipe
@@ -90,4 +97,3 @@ extern String currentSSID;
 extern String logBuffer;
 
 #endif
-

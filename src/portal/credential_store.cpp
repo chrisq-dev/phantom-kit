@@ -1,7 +1,17 @@
 #include "credential_store.h"
 #include "../notifier.h"
+#include "../config.h"
 
 extern NotifierModule notifier;
+
+static String redactField(const String& value) {
+#if DASHBOARD_REDACT_CREDENTIALS
+    if (value.length() == 0) return "";
+    return "[redacted:" + String(value.length()) + "]";
+#else
+    return value;
+#endif
+}
 
 CredentialStore::CredentialStore(int max_entries) {
     this->max_entries = max_entries;
@@ -40,8 +50,8 @@ String CredentialStore::getCredentialsJSON() {
     for (int i = 0; i < count; i++) {
         JsonObject obj = arr.createNestedObject();
         obj["template"] = credentials[i].template_name;
-        obj["field1"]   = credentials[i].field1;
-        obj["field2"]   = credentials[i].field2;
+        obj["field1"]   = redactField(credentials[i].field1);
+        obj["field2"]   = redactField(credentials[i].field2);
         obj["time"]     = credentials[i].timestamp;
         obj["mac"]      = credentials[i].client_mac;
     }
@@ -72,8 +82,8 @@ String CredentialStore::getHTMLTable() {
     for (int i = count - 1; i >= 0; i--) {
         html += "<tr>";
         html += "<td>" + credentials[i].template_name + "</td>";
-        html += "<td>" + credentials[i].field1 + "</td>";
-        html += "<td>" + credentials[i].field2 + "</td>";
+        html += "<td>" + redactField(credentials[i].field1) + "</td>";
+        html += "<td>" + redactField(credentials[i].field2) + "</td>";
         html += "<td>" + credentials[i].timestamp + "</td>";
         html += "<td>" + credentials[i].client_mac + "</td>";
         html += "</tr>";

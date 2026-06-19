@@ -70,6 +70,7 @@ PhantomKit is embedded firmware running on a resource-constrained device. The fo
 | `DASHBOARD_PASSWORD` is stored in plaintext in `config.h` | Change before flashing. Do not commit `config.h` with real credentials to public repositories. |
 | Session tokens are generated with `random()` (not a CSPRNG) | The ESP8266 has no hardware RNG. Tokens are sufficient for local-network auth but not cryptographically secure. |
 | `/api/panic` has no authentication | Intentional — allows emergency wipe when dashboard auth is unavailable. Disable in `config.h` if not needed. |
+| Dashboard/API credential fields are redacted by default | `DASHBOARD_REDACT_CREDENTIALS` is enabled for demos and portfolio screenshots. Disable only inside an authorized lab when raw values are required. |
 | LittleFS credentials are stored unencrypted | Physical access to the device allows credential extraction. Use emergency wipe if the device may be compromised. |
 | Webhook URLs are stored in plaintext on LittleFS | Treat the device as you would any other credential-bearing device. |
 

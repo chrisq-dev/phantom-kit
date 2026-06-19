@@ -4,7 +4,7 @@
 
 # ESP8266 PhantomKit
 
-**Wi-Fi security auditing and social engineering testing suite for ESP8266**
+**Authorized Wi-Fi security awareness and lab auditing platform for ESP8266**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-ESP8266-orange.svg)](https://www.espressif.com/en/products/socs/esp8266)
@@ -22,12 +22,27 @@
 
 ## What is PhantomKit?
 
-ESP8266 PhantomKit is an open-source Wi-Fi security auditing tool that runs entirely on an ESP8266 microcontroller (NodeMCU, Wemos D1 Mini, etc.). It implements real social engineering techniques through a web dashboard accessible from any browser-enabled device, with no laptop, server, or internet connection required.
+ESP8266 PhantomKit is an open-source Wi-Fi security awareness and authorized lab auditing tool that runs entirely on an ESP8266 microcontroller (NodeMCU, Wemos D1 Mini, etc.). It demonstrates real Wi-Fi and captive portal risks through a web dashboard accessible from any browser-enabled device, with no laptop, server, or internet connection required.
 
 Designed for:
 - Security students who want to learn with real hardware
-- Auditors conducting authorized phishing simulations
+- Auditors conducting authorized awareness simulations
 - Security awareness trainers in corporate environments
+
+PhantomKit is built for controlled labs, owned networks, CTF-style exercises, and written-scope audits. It is not intended for use against third-party networks or users.
+
+---
+
+## Portfolio Value
+
+This project demonstrates practical skills across:
+
+- Embedded security engineering with ESP8266, PlatformIO, C++, LittleFS, and constrained RAM/flash budgets
+- Wi-Fi protocol work with 802.11 management frames, probe requests, channel hopping, BSSID/SSID handling, and PMKID parsing
+- Security tooling design through a local dashboard, authenticated APIs, logging, export flows, and modular attack components
+- Responsible security communication with legal scope, documented limitations, CI, contribution guidelines, and bilingual documentation
+
+For demos, keep `DASHBOARD_REDACT_CREDENTIALS` enabled so screenshots and API responses show redacted sample values instead of sensitive captured data. CSV/report exports are disabled while this mode is active.
 
 ---
 
@@ -94,7 +109,7 @@ pio run --target upload
 
 # 5. Connect to the network created by the ESP8266
 #    SSID:     PhantomKit
-#    Password: phantom123
+#    Password: change-me-phantomkit
 
 # 6. Open the dashboard in your browser
 #    http://192.168.4.1/dashboard
@@ -106,9 +121,11 @@ Edit `src/config.h` to change the SSID, password, or channel before compiling:
 
 ```cpp
 #define AP_SSID     "PhantomKit"
-#define AP_PASSWORD "phantom123"
+#define AP_PASSWORD "change-me-phantomkit"
 #define AP_CHANNEL  6
 ```
+
+Change `AP_PASSWORD` and `DASHBOARD_PASSWORD` before flashing any device used outside a private lab.
 
 ---
 

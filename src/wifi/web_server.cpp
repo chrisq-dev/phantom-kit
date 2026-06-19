@@ -63,15 +63,17 @@ td{font-size:11px}
 )rawliteral";
 
 const char DASH_JS[] PROGMEM = R"rawliteral(
+function e(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function j(v){return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'\\x3c').replace(/>/g,'\\x3e')}
 function showTab(btn,name){var tabs=document.querySelectorAll('[id^=tab-]');for(var i=0;i<tabs.length;i++)tabs[i].style.display='none';var btns=document.querySelectorAll('.tab');for(var i=0;i<btns.length;i++)btns[i].classList.remove('a');document.getElementById('tab-'+name).style.display='block';btn.classList.add('a')}
 function p(u,d){return fetch(u,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:d})}
 function uS(){fetch('/api/status').then(function(r){return r.json()}).then(function(d){document.getElementById('sd').className='dot'+(d.portal_active?' a':'');document.getElementById('st').textContent=d.portal_active?'Activo':'Inactivo';document.getElementById('sC').textContent=d.clients;document.getElementById('sR').textContent=d.credentials;document.getElementById('sT').textContent=d.template_name;document.getElementById('cs').textContent=d.ssid;document.getElementById('bS').style.display=d.portal_active?'none':'block';document.getElementById('bP').style.display=d.portal_active?'block':'none';document.getElementById('sDF').textContent=d.deauth_frames;document.getElementById('sDS').textContent=d.deauth_active?'Activo':'Inactivo';document.getElementById('sDS').style.color=d.deauth_active?'#ff4444':'#666';document.getElementById('sBC').textContent=d.beacon_count;document.getElementById('sBS').textContent=d.beacon_active?'Activo':'Inactivo';document.getElementById('sBS').style.color=d.beacon_active?'#ff4444':'#666';document.getElementById('sPC').textContent=d.probe_count;document.getElementById('sPS').textContent=d.probe_active?'Activo':'Inactivo';document.getElementById('sES').textContent=d.eviltwin_active?'Activo':'Inactivo';document.getElementById('sES').style.color=d.eviltwin_active?'#ff4444':'#666'})}
-function uC(){fetch('/api/credentials').then(function(r){return r.json()}).then(function(d){if(d.length===0){document.getElementById('ct').innerHTML='<p class=e>Sin credenciales</p>';return}var h='<table><thead><tr><th>Template</th><th>Campo1</th><th>Campo2</th><th>Hora</th></tr></thead><tbody>';for(var i=0;i<d.length;i++){var c=d[i];h+='<tr><td>'+c.template+'</td><td>'+c.field1+'</td><td>'+c.field2+'</td><td>'+c.time+'</td></tr>'}h+='</tbody></table>';document.getElementById('ct').innerHTML=h})}
+function uC(){fetch('/api/credentials').then(function(r){return r.json()}).then(function(d){if(d.length===0){document.getElementById('ct').innerHTML='<p class=e>Sin credenciales</p>';return}var h='<table><thead><tr><th>Template</th><th>Campo1</th><th>Campo2</th><th>Hora</th></tr></thead><tbody>';for(var i=0;i<d.length;i++){var c=d[i];h+='<tr><td>'+e(c.template)+'</td><td>'+e(c.field1)+'</td><td>'+e(c.field2)+'</td><td>'+e(c.time)+'</td></tr>'}h+='</tbody></table>';document.getElementById('ct').innerHTML=h})}
 function uL(){fetch('/api/log').then(function(r){return r.text()}).then(function(d){document.getElementById('lc').textContent=d})}
 function tP(s){p('/api/control','action='+(s?'start':'stop')).then(uS)}
 document.getElementById('ts').addEventListener('change',function(){p('/api/template','index='+this.value).then(uS)})
 function cSSID(){var v=document.getElementById('si').value;if(v.length>0){p('/api/ssid','ssid='+v).then(function(){uS();document.getElementById('si').value=''})}}
-function scanD(){p('/api/deauth','action=scan').then(function(r){return r.text()}).then(function(d){try{var t=JSON.parse(d);var h='';for(var i=0;i<t.length;i++){var x=t[i];h+='<div class=ti onclick="selD(\''+x.bssid+'\','+x.channel+')"><div><div class=ts>'+x.ssid+'</div><div class=tb>'+x.bssid+'</div></div><div class=tr>'+x.rssi+'dBm</div></div>'}document.getElementById('dt').innerHTML=h||'<p class=e>Sin redes</p>'}catch(e){}})}
+function scanD(){p('/api/deauth','action=scan').then(function(r){return r.text()}).then(function(d){try{var t=JSON.parse(d);var h='';for(var i=0;i<t.length;i++){var x=t[i];h+='<div class=ti onclick="selD(\''+j(x.bssid)+'\','+Number(x.channel)+')"><div><div class=ts>'+e(x.ssid)+'</div><div class=tb>'+e(x.bssid)+'</div></div><div class=tr>'+e(x.rssi)+'dBm</div></div>'}document.getElementById('dt').innerHTML=h||'<p class=e>Sin redes</p>'}catch(err){}})}
 function selD(b,c){document.getElementById('dB').value=b;document.getElementById('dCh').value=c}
 function startD(){var b=document.getElementById('dB').value;var c=document.getElementById('dCh').value;if(b&&c){p('/api/deauth','action=start&bssid='+b+'&channel='+c).then(function(){uS();document.getElementById('bDS').style.display='none';document.getElementById('bDP').style.display='block'})}}
 function stopD(){p('/api/deauth','action=stop').then(function(){uS();document.getElementById('bDS').style.display='block';document.getElementById('bDP').style.display='none'})}
@@ -79,7 +81,7 @@ function startB(){p('/api/beacon','action=start&channel='+document.getElementByI
 function stopB(){p('/api/beacon','action=stop').then(function(){uS();document.getElementById('bBS').style.display='block';document.getElementById('bBP').style.display='none'})}
 function startP(){p('/api/probe','action=start&channel='+document.getElementById('pCh').value).then(function(){uS();document.getElementById('bPS').style.display='none';document.getElementById('bPP').style.display='block'})}
 function stopP(){p('/api/probe','action=stop').then(function(){uS();document.getElementById('bPS').style.display='block';document.getElementById('bPP').style.display='none'})}
-function scanE(){p('/api/eviltwin','action=scan').then(function(r){return r.text()}).then(function(d){try{var t=JSON.parse(d);var h='';for(var i=0;i<t.length;i++){var x=t[i];h+='<div class=ti onclick="selE(\''+x.ssid+'\',\''+x.bssid+'\','+x.channel+')"><div><div class=ts>'+x.ssid+'</div><div class=tb>'+x.bssid+'</div></div><div class=tr>'+x.rssi+'dBm</div></div>'}document.getElementById('et').innerHTML=h||'<p class=e>Sin redes</p>'}catch(e){}})}
+function scanE(){p('/api/eviltwin','action=scan').then(function(r){return r.text()}).then(function(d){try{var t=JSON.parse(d);var h='';for(var i=0;i<t.length;i++){var x=t[i];h+='<div class=ti onclick="selE(\''+j(x.ssid)+'\',\''+j(x.bssid)+'\','+Number(x.channel)+')"><div><div class=ts>'+e(x.ssid)+'</div><div class=tb>'+e(x.bssid)+'</div></div><div class=tr>'+e(x.rssi)+'dBm</div></div>'}document.getElementById('et').innerHTML=h||'<p class=e>Sin redes</p>'}catch(err){}})}
 var selET={s:'',b:'',c:0};function selE(s,b,c){selET={s:s,b:b,c:c}}
 function cloneE(){if(selET.b){p('/api/eviltwin','action=clone&ssid='+selET.s+'&bssid='+selET.b+'&channel='+selET.c).then(uS)}}
 function stopE(){p('/api/eviltwin','action=stop').then(uS)}
@@ -441,15 +443,15 @@ void PhantomWebServer::handleDashboard() {
     html += "if(d.length===0){document.getElementById('pd').innerHTML='<p class=e>Sin dispositivos</p>';return}";
     html += "var h='<table><thead><tr><th>MAC</th><th>Fabricante</th><th>SSIDs buscados</th><th>RSSI</th><th></th></tr></thead><tbody>';";
     html += "for(var i=0;i<d.length;i++){var x=d[i];";
-    html += "h+='<tr><td style=color:#00d4ff>'+x.mac+'</td><td style=color:#7b2ff7>'+x.vendor+'</td><td>'+x.ssids.join(', ')+'</td><td>'+x.rssi+'dBm</td>'";
-    html += "+\"<td><button class='bp' style='font-size:10px;padding:3px 8px' onclick='quickAttack(\\\"\"+(x.ssids[0]||'')+\"\\\",\\\"\"+(x.mac||'')+\"\\\")'>Atacar</button></td></tr>'}";
+    html += "h+='<tr><td style=color:#00d4ff>'+e(x.mac)+'</td><td style=color:#7b2ff7>'+e(x.vendor)+'</td><td>'+e((x.ssids||[]).join(', '))+'</td><td>'+e(x.rssi)+'dBm</td>'";
+    html += "+\"<td><button class='bp' style='font-size:10px;padding:3px 8px' onclick='quickAttack(\\\"\"+j(x.ssids&&x.ssids[0]||'')+\"\\\",\\\"\"+j(x.mac||'')+\"\\\")'>Atacar</button></td></tr>'}";
     html += "h+='</tbody></table>';document.getElementById('pd').innerHTML=h})}";
     // Auto-attack scan
     html += "\nfunction scanAA(){p('/api/deauth','action=scan').then(function(r){return r.text()}).then(function(t){var d=JSON.parse(t);";
     html += "if(!d.length){document.getElementById('aat').innerHTML='<p class=e>Sin redes</p>';return}";
     html += "var h='<table><thead><tr><th>SSID</th><th>BSSID</th><th>Ch</th><th>dBm</th><th></th></tr></thead><tbody>';";
-    html += "for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td>'+x.ssid+'</td><td style=color:#00d4ff>'+x.bssid+'</td><td>'+x.channel+'</td><td>'+x.rssi+'</td>'";
-    html += "+\"<td><button class='bs' style='font-size:10px;padding:3px 8px' onclick='fillAA(\\\"\"+(x.ssid)+\"\\\",\\\"\"+(x.bssid)+'\",\"+(x.channel)+')>Sel</button></td></tr>'}";
+    html += "for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td>'+e(x.ssid)+'</td><td style=color:#00d4ff>'+e(x.bssid)+'</td><td>'+e(x.channel)+'</td><td>'+e(x.rssi)+'</td>'";
+    html += "+\"<td><button class='bs' style='font-size:10px;padding:3px 8px' onclick='fillAA(\\\"\"+j(x.ssid)+\"\\\",\\\"\"+j(x.bssid)+'\",\"+Number(x.channel)+')>Sel</button></td></tr>'}";
     html += "h+='</tbody></table>';document.getElementById('aat').innerHTML=h})}";
     html += "\nfunction fillAA(s,b,c){document.getElementById('aaSsid').value=s;document.getElementById('aaBssid').value=b;document.getElementById('aaCh').value=c;";
     html += "fetch('/api/autoattack?action=suggest&ssid='+encodeURIComponent(s)).then(function(r){return r.json()}).then(function(d){document.getElementById('aaTplMsg').textContent='Template sugerido: '+d.template_name})}";
@@ -461,7 +463,7 @@ void PhantomWebServer::handleDashboard() {
     // PMKID
     html += "\nfunction startPM(){var b=document.getElementById('pmBssid').value;p('/api/pmkid','action=start&bssid='+encodeURIComponent(b)).then(function(){document.getElementById('bPMS').style.display='none';document.getElementById('bPMP').style.display='';document.getElementById('sPMS').textContent='Capturando'})}";
     html += "\nfunction stopPM(){p('/api/pmkid','action=stop').then(function(r){return r.json()}).then(function(d){document.getElementById('bPMS').style.display='';document.getElementById('bPMP').style.display='none';document.getElementById('sPMC').textContent=d.count;document.getElementById('sPMS').textContent='Detenido';uPM()})}";
-    html += "\nfunction uPM(){fetch('/api/pmkid/results').then(function(r){return r.json()}).then(function(d){document.getElementById('sPMC').textContent=d.length;if(!d.length){document.getElementById('pmList').innerHTML='<p class=e>Sin PMKIDs</p>';return}var h='<table><thead><tr><th>AP MAC</th><th>STA MAC</th><th>Hashcat</th></tr></thead><tbody>';for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td style=color:#00d4ff>'+x.ap+'</td><td>'+x.sta+'</td><td style=font-size:9px;word-break:break-all>'+x.hashcat+'</td></tr>'}h+='</tbody></table>';document.getElementById('pmList').innerHTML=h})}";
+    html += "\nfunction uPM(){fetch('/api/pmkid/results').then(function(r){return r.json()}).then(function(d){document.getElementById('sPMC').textContent=d.length;if(!d.length){document.getElementById('pmList').innerHTML='<p class=e>Sin PMKIDs</p>';return}var h='<table><thead><tr><th>AP MAC</th><th>STA MAC</th><th>Hashcat</th></tr></thead><tbody>';for(var i=0;i<d.length;i++){var x=d[i];h+='<tr><td style=color:#00d4ff>'+e(x.ap)+'</td><td>'+e(x.sta)+'</td><td style=font-size:9px;word-break:break-all>'+e(x.hashcat)+'</td></tr>'}h+='</tbody></table>';document.getElementById('pmList').innerHTML=h})}";
     // Karma
     html += "\nfunction startKarma(){p('/api/karma','action=start').then(function(){document.getElementById('karmaLbl').textContent='ACTIVO';document.getElementById('karmaLbl').style.color='#ff4444'})}";
     html += "\nfunction stopKarma(){p('/api/karma','action=stop').then(function(){document.getElementById('karmaLbl').textContent='Inactivo';document.getElementById('karmaLbl').style.color=''})}";
@@ -568,6 +570,10 @@ void PhantomWebServer::handleAPIAutoPortal() {
 }
 
 void PhantomWebServer::handleAPIExportCSV() {
+#if DASHBOARD_REDACT_CREDENTIALS
+    server.send(403, "text/plain", "Export disabled while DASHBOARD_REDACT_CREDENTIALS is enabled");
+    return;
+#endif
     if (!LittleFS.exists("/credentials.csv")) {
         server.send(404, "text/plain", "Sin credenciales");
         return;
@@ -676,6 +682,10 @@ void PhantomWebServer::handleAPIPanic() {
 }
 
 void PhantomWebServer::handleAPIExportReport() {
+#if DASHBOARD_REDACT_CREDENTIALS
+    server.send(403, "text/plain", "Report export disabled while DASHBOARD_REDACT_CREDENTIALS is enabled");
+    return;
+#endif
     unsigned long uptime = millis() / 1000;
     unsigned long hrs  = uptime / 3600;
     unsigned long mins = (uptime % 3600) / 60;
