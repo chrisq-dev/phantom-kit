@@ -1,203 +1,125 @@
-# Guía de Uso - ESP8266 PhantomKit
+# Usage Guide - ESP8266 PhantomKit
 
-## Dashboard Web
+PhantomKit must only be used in owned networks, isolated labs, training environments, CTF-style exercises, or audits with explicit written authorization.
 
-Una vez conectado al AP del ESP8266, abre `http://192.168.4.1/dashboard` en tu navegador.
+## Web Dashboard
 
-### Panel de Control
+After connecting to the ESP8266 AP, open:
 
-- **SSID Actual:** Muestra el nombre de la red WiFi activa
-- **Cambiar SSID:** Escribe un nuevo nombre y aplica
-- **Template:** Selecciona qué página de login mostrar
-- **Activar/Desactivar Portal:** Controla el captive portal
-
-### Estadísticas
-
-- **Clientes:** Número de dispositivos conectados al AP
-- **Credenciales:** Cantidad de credenciales capturadas
-- **Template:** Template actualmente activo
-- **Estado de módulos:** Indicadores visuales de actividad
-
-### Credenciales Capturadas
-
-Muestra en tiempo real todas las credenciales capturadas:
-- Template usado
-- Campo 1 (email/teléfono/usuario)
-- Campo 2 (contraseña/código)
-- Hora de captura
-
-### Logs en Tiempo Real
-
-Muestra todos los eventos del sistema con timestamp.
-
-## Módulos de Ataque
-
-### 1. Portal (Captive Portal)
-**Objetivo:** Capturar credenciales mediante páginas de login clonadas.
-
-**Cómo usar:**
-1. Selecciona un template (Facebook, Instagram, etc.)
-2. Opcional: Cambia el SSID a algo creíble
-3. Clic en **Activar**
-4. Los usuarios que se conecten verán la página de login
-5. Las credenciales aparecen en la tabla en tiempo real
-
-**Flujo típico:**
-- Usuario se conecta al WiFi "PhantomKit"
-- Se abre automáticamente la página de login
-- Usuario ingresa credenciales
-- Se muestra mensaje "Conectando..."
-- Credenciales capturadas en dashboard
-
-### 2. Deauth Attack
-**Objetivo:** Desconectar dispositivos de una red WiFi objetivo.
-
-**Cómo usar:**
-1. Clic en **Escanear Redes** (escanea canales 1-13 automáticamente)
-2. Selecciona la red objetivo de la lista
-3. Verifica el BSSID y canal
-4. Clic en **Iniciar**
-5. Los dispositivos se desconectarán de esa red
-6. Clic en **Detener** para restaurar
-
-**Notas:**
-- El escaneo multi-canal encuentra redes en todos los canales
-- El ataque funciona en el canal de la red objetivo
-- Solo afecta la red seleccionada
-
-### 3. Beacon Flood
-**Objetivo:** Saturar la lista de WiFi con redes falsas.
-
-**Cómo usar:**
-1. Selecciona un canal (1-13)
-2. Clic en **Iniciar**
-3. Los dispositivos cercanos verán decenas de redes nuevas
-4. Clic en **Detener** para limpiar
-
-**Características:**
-- 50+ SSIDs predefinidos (algunos divertidos)
-- Generación automática de BSSIDs
-- Contador de beacons enviados en tiempo real
-
-### 4. Probe Sniffer
-**Objetivo:** Detectar qué redes buscan los dispositivos cercanos.
-
-**Cómo usar:**
-1. Clic en **Iniciar**
-2. El ESP8266 rotará entre canales automáticamente
-3. Acerca dispositivos para capturar sus probes
-4. Verás MACs y nombres de redes buscadas
-5. Clic en **Detener** al finalizar
-
-**Qué revela:**
-- Historial de conexiones del dispositivo
-- Redes frecuentadas por el usuario
-- Patrones de movimiento (casa, trabajo, etc.)
-
-### 5. Evil Twin
-**Objetivo:** Clonar una red WiFi existente.
-
-**Cómo usar:**
-1. Clic en **Escanear** (escanea canales 1-13)
-2. Selecciona la red a clonar
-3. Clic en **Clonar**
-4. Se creará un AP con el mismo nombre
-5. Opcional: Activa el Portal para capturar credenciales
-6. Clic en **Detener** para apagar el clon
-
-**Advertencia:**
-- Puede desconectarte del dashboard si cambia el canal
-- Usa con precaución en entornos productivos
-
-## Templates Disponibles
-
-| Template | Descripción | Campos |
-|----------|-------------|--------|
-| Facebook | Login de Facebook con diseño actual | Email + Contraseña |
-| Instagram | Login de Instagram minimalista | Usuario + Contraseña |
-| Microsoft | Login de Microsoft (Fluent Design) | Email + Contraseña |
-| X (Twitter) | Login de X con dark mode | Usuario + Contraseña |
-| Google | Login de Google ultra minimalista | Email + Contraseña |
-| WiFi Login | Portal genérico para contraseña WiFi | Contraseña WiFi x2 |
-| Netflix | Login de Netflix con fondo oscuro | Email + Contraseña |
-| WhatsApp | Verificación de número de teléfono | Teléfono + Código |
-
-## Flujo de Uso Típico
-
-### Auditoría Básica
-1. **Configurar SSID:** Cambia el nombre a algo creíble para el entorno
-2. **Seleccionar Template:** Elige el más apropiado para el contexto
-3. **Activar Portal:** Activa el captive portal
-4. **Esperar:** Las víctimas se conectan y ven el portal
-5. **Capturar:** Las credenciales aparecen en el dashboard
-6. **Documentar:** Copia las credenciales para el reporte
-
-### Auditoría Avanzada
-1. **Reconocimiento:** Usa Probe Sniffer para ver redes buscadas
-2. **Escaneo:** Usa Deauth Scan para ver todas las redes del área
-3. **Selección:** Identifica el objetivo principal
-4. **Ataque:** Activa el módulo correspondiente
-5. **Documentación:** Registra todos los eventos en los logs
-6. **Limpieza:** Detén todos los módulos y borra credenciales
-
-## Ejemplos de Auditoría
-
-### Escenario 1: Oficina Corporativa
-- **SSID:** `CorpWiFi-Visitantes`
-- **Template:** Microsoft Login
-- **Objetivo:** Demostrar riesgo de phishing interno
-
-### Escenario 2: Hotel/Aeropuerto
-- **SSID:** `WiFi Gratis Hotel`
-- **Template:** WiFi Login
-- **Objetivo:** Demostrar riesgo de redes públicas
-
-### Escenario 3: Concientización
-- **SSID:** `Free Airport WiFi`
-- **Template:** Google
-- **Objetivo:** Training de seguridad para empleados
-
-## Configuración Avanzada
-
-### Channel Hopping
-El ESP8266 rota automáticamente entre canales 1-13 para:
-- Escanear todas las redes del área
-- Capturar probes en cualquier canal
-- Atacar objetivos en cualquier canal
-
-Configurable en `config.h`:
-```cpp
-#define CHANNEL_HOPPING_ENABLED true
-#define CHANNEL_HOP_INTERVAL 500  // ms por canal
-#define MIN_CHANNEL 1
-#define MAX_CHANNEL 13
+```text
+http://192.168.4.1/dashboard
 ```
 
-### Canal del AP
-Por defecto en canal 6. Cambiable en `config.h`:
-```cpp
-#define AP_CHANNEL 6
-```
+The dashboard provides:
+
+- Current AP SSID
+- Portal template selection
+- Portal start/stop control
+- Module status counters
+- Redacted captured-field table when demo mode is enabled
+- Live event log
+- Export controls when raw export mode is allowed
+
+## Captive Portal
+
+**Goal:** demonstrate credential-entry risk through controlled captive portal simulations.
+
+Typical authorized lab flow:
+
+1. Select a portal template.
+2. Optionally set a lab SSID.
+3. Start the portal.
+4. Connect a test device owned by the operator.
+5. Submit fake/demo values.
+6. Review redacted results in the dashboard.
+7. Wipe collected artifacts after the exercise.
+
+## Deauth Module
+
+**Goal:** demonstrate the impact of 802.11 deauthentication frames in a controlled RF environment.
+
+Use only against a test AP or an explicitly authorized target:
+
+1. Scan networks.
+2. Select the target BSSID and channel.
+3. Start the module.
+4. Observe lab device behavior.
+5. Stop the module and restore normal operation.
+
+## Beacon Flood
+
+**Goal:** demonstrate how fake beacon frames can clutter nearby Wi-Fi scan lists.
+
+1. Select a channel.
+2. Start the module.
+3. Observe the scan list from a lab device.
+4. Stop the module after the demonstration.
+
+## Probe Sniffer
+
+**Goal:** show how devices may reveal previously known SSIDs through probe requests.
+
+1. Start sniffing.
+2. Move lab devices near the ESP8266.
+3. Review detected MACs, vendors, RSSI, and requested SSIDs.
+4. Stop sniffing and clear artifacts after the lab.
+
+## Evil Twin
+
+**Goal:** demonstrate SSID cloning risk in a controlled lab.
+
+1. Scan nearby networks.
+2. Select a test SSID/BSSID.
+3. Clone the AP name in the lab.
+4. Optionally combine with the captive portal for awareness training.
+5. Stop the clone when the exercise ends.
+
+## PMKID Capture
+
+**Goal:** demonstrate how WPA2 handshake material can be observed and exported for authorized password-audit workflows.
+
+1. Start PMKID capture for a target BSSID or all BSSIDs.
+2. Use a lab AP/client pair.
+3. Export hashcat 22000 output only in an authorized audit context.
+4. Stop capture and wipe artifacts after the exercise.
+
+## Demo-Safe Workflow
+
+For portfolio screenshots and videos:
+
+1. Keep `DASHBOARD_REDACT_CREDENTIALS` enabled.
+2. Use fake SSIDs and test credentials.
+3. Show module controls and redacted results.
+4. Avoid showing real nearby network names when possible.
+5. Run emergency wipe before ending the demo.
+
+## Reporting Workflow
+
+For professional awareness exercises, document:
+
+- Written authorization and scope
+- Hardware and firmware version
+- Date, time, and location of the lab
+- Modules used
+- Redacted evidence
+- Risk explanation
+- Remediation guidance
+- Cleanup actions performed
 
 ## Troubleshooting
 
-### El dashboard no carga
-- Verifica que estás conectado a la red `PhantomKit`
-- Intenta `http://192.168.4.1/dashboard` directamente
-- Hard refresh: `Ctrl+Shift+R`
-- Revisa el monitor serial para errores
+### No networks appear during scan
 
-### No aparecen redes en el escaneo
-- Espera 10-15 segundos para el escaneo multi-canal
-- Verifica que haya redes WiFi en el área
-- Revisa los logs para errores de escaneo
+- Wait for multi-channel scanning to complete.
+- Confirm nearby lab networks are active.
+- Check logs for scan errors.
 
-### Los ataques no funcionan
-- Verifica que el canal coincida con el objetivo
-- Asegúrate de que el módulo esté activo
-- Revisa el contador de frames/beacons/probes
+### Dashboard disconnects
 
-### Pérdida de conexión al dashboard
-- Algunos ataques cambian el canal temporalmente
-- El ESP8266 vuelve al canal del AP automáticamente
-- Reconecta al WiFi si es necesario
+- Some modules change channels temporarily.
+- Reconnect to the management AP.
+- Stop active modules if the dashboard becomes unstable.
+
+### Export returns 403
+
+CSV/report export is intentionally blocked while `DASHBOARD_REDACT_CREDENTIALS` is enabled. Disable redaction only inside an authorized lab when raw values are required.

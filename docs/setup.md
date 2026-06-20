@@ -1,163 +1,144 @@
 # Setup Guide - ESP8266 PhantomKit
 
-## Requisitos
+## Requirements
 
-- PlatformIO Core instalado
-- ESP8266 (NodeMCU, Wemos D1 Mini, etc.)
-- Cable USB de datos
+- PlatformIO Core installed
+- ESP8266 board (NodeMCU, Wemos D1 Mini, or similar)
+- USB data cable
 - Python 3.x
 
-## Instalación
+## Installation
 
-### 1. Instalar PlatformIO
+### 1. Install PlatformIO
 
 ```bash
 pip install platformio
 ```
 
-### 2. Verificar conexión del ESP8266
+### 2. Verify ESP8266 connection
 
 ```bash
 lsusb | grep -i ch340
 ls -la /dev/ttyUSB*
 ```
 
-Si no tienes permisos:
+If your user cannot access the serial device:
+
 ```bash
 sudo chmod 666 /dev/ttyUSB0
 ```
 
-### 3. Compilar el proyecto
+### 3. Build the project
 
 ```bash
-cd esp8266-phantomkit
+cd phantom-kit
 pio run
 ```
 
-### 4. Subir templates a LittleFS
+### 4. Upload templates to LittleFS
 
 ```bash
 pio run --target uploadfs
 ```
 
-### 5. Flashear el firmware
+### 5. Flash the firmware
 
 ```bash
 pio run --target upload
 ```
 
-### 6. Abrir monitor serial
+### 6. Open the serial monitor
 
 ```bash
 pio device monitor --baud 115200
 ```
 
-## Uso
+## First Use
 
-1. Conecta el ESP8266 por USB
-2. Compila y flashea con los comandos anteriores
-3. Desde tu teléfono o laptop, conéctate a la red WiFi:
+1. Connect the ESP8266 over USB.
+2. Build and flash the firmware using the commands above.
+3. From a phone or laptop, connect to the Wi-Fi network:
    - **SSID:** `PhantomKit`
    - **Password:** `change-me-phantomkit`
-4. Abre el navegador y ve a: `http://192.168.4.1/dashboard`
-5. Verás el dashboard de control con todos los módulos
+4. Open `http://192.168.4.1/dashboard` in a browser.
+5. Log in with the dashboard password configured in `src/config.h`.
 
-## Configuración Avanzada
+## Configuration
 
 ### Channel Hopping
-El ESP8266 incluye channel hopping automático para escanear y operar en todos los canales (1-13). Esto permite:
-- Detectar redes en cualquier canal
-- Atacar objetivos en cualquier canal
-- Operar de forma autónoma en cualquier ubicación
 
-Configurable en `src/config.h`:
+The ESP8266 can rotate across channels 1-13 for scanning and module operation:
+
 ```cpp
 #define CHANNEL_HOPPING_ENABLED true
-#define CHANNEL_HOP_INTERVAL 500  // ms por canal
+#define CHANNEL_HOP_INTERVAL 500
 #define MIN_CHANNEL 1
 #define MAX_CHANNEL 13
 ```
 
-### Canal del AP
-Por defecto en canal 6 (más compatible universalmente). Cambiable en `src/config.h`:
-```cpp
-#define AP_CHANNEL 6
-```
+### Management AP
 
-### SSID y Password
-Configurables en `src/config.h`:
+Configured in `src/config.h`:
+
 ```cpp
 #define AP_SSID "PhantomKit"
 #define AP_PASSWORD "change-me-phantomkit"
 #define DASHBOARD_PASSWORD "change-me-auditor"
 ```
 
-Cambia estas contraseñas antes de usar el dispositivo fuera de un laboratorio privado.
+Change these values before using the device outside a private lab.
 
-## Módulos Incluidos
+### Demo-Safe Redaction
 
-El firmware incluye todos los módulos activos:
-- ✅ Portal Cautivo (8 templates)
-- ✅ Deauth Attack
-- ✅ Beacon Flood
-- ✅ Probe Sniffer
-- ✅ Evil Twin
-- ✅ Auto-Portal
-- ✅ Channel Hopping
+For portfolio demos, keep credential redaction enabled:
+
+```cpp
+#define DASHBOARD_REDACT_CREDENTIALS true
+```
+
+When enabled, dashboard/API credential fields are redacted and CSV/report exports are blocked.
+
+## Included Modules
+
+- Captive portal with 8 templates
+- Deauth module
+- Beacon flood module
+- Probe sniffer
+- Evil twin workflow
+- Auto-portal template suggestion
+- Channel hopping
+- PMKID capture
+- Emergency wipe
 
 ## Troubleshooting
 
-### El ESP8266 no aparece en `/dev/ttyUSB*`
-- Verifica que el cable USB sea de datos (no solo carga)
-- Prueba en otro puerto USB
-- Instala drivers CH340 si es necesario
+### ESP8266 does not appear as `/dev/ttyUSB*`
 
-### Error al subir LittleFS
-- Asegúrate de que los templates están en `data/templates/`
-- Verifica que hay espacio suficiente en flash
+- Verify that the USB cable supports data.
+- Try another USB port.
+- Install CH340 drivers if needed.
 
-### El dashboard no carga
-- Verifica que estás conectado a la red `PhantomKit`
-- Intenta `http://192.168.4.1/dashboard` directamente
-- Hard refresh: `Ctrl+Shift+R`
-- Revisa el monitor serial para errores
+### LittleFS upload fails
 
-### Los módulos no funcionan
-- Verifica que el firmware se subió correctamente
-- Revisa los logs en el dashboard
-- Reinicia el ESP8266 (desconecta y conecta USB)
+- Confirm that templates exist under `data/templates/`.
+- Check that the board has enough flash space.
 
-### Pérdida de conexión durante ataques
-- Algunos ataques cambian el canal temporalmente
-- El ESP8266 vuelve al canal del AP automáticamente
-- Reconecta al WiFi si es necesario
+### Dashboard does not load
 
-## Verificación de Instalación
+- Confirm that you are connected to the `PhantomKit` Wi-Fi network.
+- Open `http://192.168.4.1/dashboard` directly.
+- Hard refresh the browser.
+- Check the serial monitor for boot errors.
 
-Después de flashear, verifica que todo funcione:
+### Modules do not behave as expected
 
-1. **Monitor Serial:** Deberías ver:
-   ```
-   ESP8266 PhantomKit iniciando...
-   LittleFS montado correctamente
-   WiFi AP iniciado: PhantomKit Canal: 6
-   DNS Server iniciado
-   Channel Hopper iniciado
-   [DEAUTH] Modulo iniciado
-   [BEACON] Modulo iniciado con 51 SSIDs
-   [PROBE] Modulo iniciado
-   Dashboard web: http://192.168.4.1/dashboard
-   PhantomKit listo. Conectate a: PhantomKit
-   ```
+- Confirm that the firmware flashed successfully.
+- Verify that the target channel matches the selected module.
+- Check dashboard logs and serial output.
+- Restart the ESP8266 after testing disruptive modules.
 
-2. **Dashboard:** Abre `http://192.168.4.1/dashboard` y verifica:
-   - Header con logo "PK" y "PhantomKit"
-   - 5 pestañas: Portal, Deauth, Beacon, Probe, Evil Twin
-   - Logs mostrando mensajes de inicio
-   - Indicador de estado "Inactivo"
+## Installation Verification
 
-3. **API:** Abre `http://192.168.4.1/api/status` y verifica:
-   - JSON con estado de todos los módulos
-   - `portal_active: false`
-   - `template_name: "Facebook"`
-   - Contadores en 0
+After flashing, the serial monitor should show the AP, DNS server, channel hopper, modules, and dashboard starting successfully.
+
+The dashboard should show the main tabs, module counters, startup logs, and inactive/default module state.

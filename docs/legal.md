@@ -1,49 +1,59 @@
-# Disclaimer Legal y Ético
+# Legal and Ethical Disclaimer
 
-## ⚠️ ADVERTENCIA IMPORTANTE
+## Important Warning
 
-**ESP8266 PhantomKit** es un proyecto de investigación y desarrollo diseñado exclusivamente para **fines educativos, auditorías de seguridad autorizadas y pruebas de concepto en entornos controlados**.
+**ESP8266 PhantomKit** is a research and training project intended exclusively for educational use, authorized security audits, security awareness exercises, and proof-of-concept work in controlled environments.
 
-## Propósito del Proyecto
+## Project Purpose
 
-Este software tiene como objetivo:
-- Demostrar vulnerabilidades en protocolos WiFi para fines de aprendizaje
-- Facilitar auditorías de seguridad en redes propias o con autorización explícita
-- Servir como herramienta de concientización sobre riesgos de ingeniería social
-- Investigar comportamientos de dispositivos IoT y móviles en entornos de prueba
+This software is intended to:
 
-## Uso Permitido
+- Demonstrate Wi-Fi and captive portal risks for learning
+- Support audits on owned networks or networks with explicit written authorization
+- Help security awareness training teams explain social engineering risk
+- Explore IoT and mobile-device behavior in controlled labs
 
-Este software solo debe utilizarse en:
-- **Redes propias** donde seas el propietario legítimo
-- **Laboratorios de seguridad** aislados y controlados
-- **Auditorías profesionales** con contrato y autorización escrita
-- **Entornos académicos** bajo supervisión docente
+## Permitted Use
 
-## Uso Prohibido
+This software may only be used in:
 
-Es **ESTRICTAMENTE PROHIBIDO** utilizar esta herramienta para:
-- Capturar credenciales de terceros sin consentimiento
-- Realizar ataques a redes públicas o privadas ajenas
-- Interceptar comunicaciones de usuarios no autorizados
-- Cualquier actividad que viole leyes locales de ciberseguridad
+- Networks you own or are legally authorized to test
+- Isolated security labs
+- Professional audits with written scope and authorization
+- Academic environments under appropriate supervision
+- CTF or training environments built for this type of exercise
 
-## Responsabilidad del Usuario
+## Prohibited Use
 
-El usuario asume **total responsabilidad legal y ética** por el uso de esta herramienta. Los desarrolladores no se hacen responsables del uso indebido. Se recomienda:
-- Mantener registros detallados de todas las pruebas realizadas
-- Obtener autorización escrita antes de cualquier prueba en redes ajenas
-- Destruir o anonimizar datos capturados después de las pruebas
-- Reportar vulnerabilidades encontradas a los propietarios de las redes
+It is strictly prohibited to use this tool to:
 
-## Marco Legal
+- Capture credentials from third parties without consent
+- Attack public or private networks without authorization
+- Intercept communications from unauthorized users
+- Disrupt networks outside an approved lab or audit scope
+- Violate cybersecurity, privacy, or communications laws
 
-El uso no autorizado puede constituir delito según:
-- Leyes de acceso no autorizado a sistemas informáticos
-- Leyes de protección de datos personales
-- Leyes de interceptación de comunicaciones
-- Regulaciones locales de ciberseguridad
+## User Responsibility
 
-## Conclusión
+The user accepts full legal and ethical responsibility for the use of this tool. Recommended safeguards:
 
-La ciberseguridad es una disciplina defensiva. Esta herramienta existe para ayudar a proteger sistemas, no para comprometerlos. Úsala con responsabilidad, ética y respeto por la privacidad de terceros.
+- Get written authorization before testing any network you do not own
+- Keep detailed records of scope, dates, location, and test activities
+- Use fake or training credentials whenever possible
+- Redact or anonymize evidence used in reports
+- Destroy collected data after the exercise
+- Report any discovered weaknesses to the network owner
+
+## Legal Context
+
+Unauthorized use may violate laws related to:
+
+- Unauthorized access to computer systems
+- Personal data protection
+- Communications interception
+- Cybersecurity and computer misuse
+- Wireless spectrum or radio-frequency regulations
+
+## Conclusion
+
+Cybersecurity is a defensive discipline. PhantomKit exists to help people understand and reduce risk in controlled, authorized settings. Use it responsibly and respect the privacy and property of others.

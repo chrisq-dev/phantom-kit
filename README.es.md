@@ -44,6 +44,13 @@ Este proyecto demuestra habilidades prácticas en:
 
 Para demos, mantén `DASHBOARD_REDACT_CREDENTIALS` activado para que screenshots y respuestas API muestren datos redactados en vez de valores sensibles capturados. Las exportaciones CSV/reporte quedan desactivadas mientras este modo esta activo.
 
+### Lo que Demuestra Este Proyecto
+
+- Puedo diseñar tooling de seguridad que balancea simulación ofensiva con controles defensivos y uso autorizado
+- Puedo trabajar cerca de restricciones de hardware, no solo con scripts de escritorio o servicios cloud
+- Puedo explicar trade-offs técnicos con claridad: límites de memoria, radio único, almacenamiento local en claro y autenticación local
+- Puedo mantener higiene profesional open-source con documentación bilingüe, CI, política de seguridad, changelog y guía de contribución
+
 ---
 
 ## Características
@@ -160,12 +167,27 @@ phantom-kit/
 │   ├── netflix.html
 │   └── whatsapp.html
 ├── docs/
-│   ├── setup.md                # Guía de instalación detallada
-│   ├── usage.md                # Guía de uso y escenarios
-│   └── legal.md                # Disclaimer legal
+│   ├── architecture.md         # Arquitectura del sistema en inglés
+│   ├── architecture.es.md      # Arquitectura del sistema en español
+│   ├── setup.md / setup.es.md  # Guías de instalación
+│   ├── usage.md / usage.es.md  # Guías de uso y escenarios
+│   └── legal.md / legal.es.md  # Disclaimer legal
 ├── CHANGELOG.md                # Historial de versiones
 └── README.md
 ```
+
+---
+
+## Documentación
+
+- [Arquitectura](docs/architecture.es.md)
+- [Guía de instalación](docs/setup.es.md)
+- [Guía de uso](docs/usage.es.md)
+- [Disclaimer legal y ético](docs/legal.es.md)
+- [Política de seguridad](SECURITY.es.md)
+- [Guía de contribución](CONTRIBUTING.es.md)
+
+La documentación en inglés está disponible en [README.md](README.md), [docs/architecture.md](docs/architecture.md), [docs/setup.md](docs/setup.md), [docs/usage.md](docs/usage.md) y [docs/legal.md](docs/legal.md).
 
 ---
 
@@ -280,7 +302,7 @@ Esta herramienta es exclusivamente para **fines educativos y auditorías de segu
 - Permitido: pruebas en redes propias, entornos de laboratorio, auditorías con autorización escrita
 - No permitido: uso en redes o dispositivos sin autorización explícita del propietario
 
-El uso indebido puede violar leyes locales e internacionales. El autor no se hace responsable por usos no autorizados. Consulta [docs/legal.md](docs/legal.md) para el disclaimer completo.
+El uso indebido puede violar leyes locales e internacionales. El autor no se hace responsable por usos no autorizados. Consulta [docs/legal.es.md](docs/legal.es.md) para el disclaimer completo.
 
 ---
 

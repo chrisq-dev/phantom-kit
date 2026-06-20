@@ -44,6 +44,13 @@ This project demonstrates practical skills across:
 
 For demos, keep `DASHBOARD_REDACT_CREDENTIALS` enabled so screenshots and API responses show redacted sample values instead of sensitive captured data. CSV/report exports are disabled while this mode is active.
 
+### What This Project Shows
+
+- I can design security tooling that balances offensive simulation with defensive, authorized-use controls
+- I can work close to hardware constraints instead of relying only on desktop scripts or cloud services
+- I can explain trade-offs clearly: memory limits, single-radio behavior, plaintext local storage, and local-only authentication
+- I can maintain professional open-source hygiene with bilingual docs, CI, security policy, changelog, and contribution guidance
+
 ---
 
 ## Features
@@ -160,12 +167,27 @@ phantom-kit/
 │   ├── netflix.html
 │   └── whatsapp.html
 ├── docs/
-│   ├── setup.md                # Detailed installation guide
-│   ├── usage.md                # Usage guide and scenarios
-│   └── legal.md                # Legal disclaimer
+│   ├── architecture.md         # System architecture and design trade-offs
+│   ├── architecture.es.md      # Arquitectura del sistema en español
+│   ├── setup.md / setup.es.md  # Installation guides
+│   ├── usage.md / usage.es.md  # Usage guides and scenarios
+│   └── legal.md / legal.es.md  # Legal disclaimers
 ├── CHANGELOG.md                # Version history
 └── README.md
 ```
+
+---
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Setup guide](docs/setup.md)
+- [Usage guide](docs/usage.md)
+- [Legal and ethical disclaimer](docs/legal.md)
+- [Security policy](SECURITY.md)
+- [Contributing guide](CONTRIBUTING.md)
+
+Spanish documentation is available through [README.es.md](README.es.md), [docs/architecture.es.md](docs/architecture.es.md), [docs/setup.es.md](docs/setup.es.md), [docs/usage.es.md](docs/usage.es.md), and [docs/legal.es.md](docs/legal.es.md).
 
 ---
 
