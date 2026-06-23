@@ -210,6 +210,7 @@ phantom-kit/
 │   ├── architecture.es.md      # Arquitectura del sistema en español
 │   ├── setup.md / setup.es.md  # Guías de instalación
 │   ├── usage.md / usage.es.md  # Guías de uso y escenarios
+│   ├── demo.md / demo.es.md    # Demo guiado para portafolio sin hardware
 │   ├── safety.md / safety.es.md # Controles de seguridad y checklist
 │   └── legal.md / legal.es.md  # Disclaimer legal
 ├── CHANGELOG.md                # Historial de versiones
@@ -223,12 +224,13 @@ phantom-kit/
 - [Arquitectura](docs/architecture.es.md)
 - [Guía de instalación](docs/setup.es.md)
 - [Guía de uso](docs/usage.es.md)
+- [Demo guiado para portafolio](docs/demo.es.md)
 - [Seguridad por Diseño](docs/safety.es.md)
 - [Disclaimer legal y ético](docs/legal.es.md)
 - [Política de seguridad](SECURITY.es.md)
 - [Guía de contribución](CONTRIBUTING.es.md)
 
-La documentación en inglés está disponible en [README.md](README.md), [docs/architecture.md](docs/architecture.md), [docs/setup.md](docs/setup.md), [docs/usage.md](docs/usage.md), [docs/safety.md](docs/safety.md) y [docs/legal.md](docs/legal.md).
+La documentación en inglés está disponible en [README.md](README.md), [docs/architecture.md](docs/architecture.md), [docs/setup.md](docs/setup.md), [docs/usage.md](docs/usage.md), [docs/demo.md](docs/demo.md), [docs/safety.md](docs/safety.md) y [docs/legal.md](docs/legal.md).
 
 ## Releases
 
@@ -239,6 +241,8 @@ Los releases taggeados (`v*.*.*`) se compilan con GitHub Actions. Cada release i
 - `SHA256SUMS.txt`
 
 Usa el archivo de checksums para verificar los binarios descargados antes de flashear.
+
+La página pública de releases se mantiene enfocada en el firmware soportado más reciente. Los tags viejos pueden eliminarse cuando ya no reflejan los controles de seguridad o documentación actuales.
 
 ---
 
@@ -325,10 +329,14 @@ lib_deps =
 | v1.3 | Portal Auto-Match (seleccion de template por palabras clave) |
 | v1.3 | Emergency Wipe (mantener GPIO0 + endpoint /api/panic) |
 | v1.3 | Notificacion toast de credenciales en tiempo real |
+| v1.4 | Wizard de auditoría con perfiles pasivo, portal autorizado y laboratorio completo |
+| v1.4 | Guardrail de modo pasivo que bloquea módulos activos |
+| v1.4 | Reporte de sesión compatible con redacción, hallazgos y log operativo |
+| v1.4 | Documentación de demo guiado para portafolio |
 
 ### Planificado
 
-**v1.4 — Tooling e integracion**
+**v1.5 — Tooling e integracion**
 
 - [ ] `phantomkit-pull` — CLI en Python para descargar PMKIDs y credenciales del dashboard y pasarlos directamente a hashcat o un archivo local
 - [ ] Integracion con bot de Telegram — alertas de credenciales en tiempo real con mensajes formateados

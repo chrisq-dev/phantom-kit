@@ -9,6 +9,23 @@ y este proyecto sigue [Versionado Semántico](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.4.0] - 2026-06-23
+
+### Agregado
+
+- Wizard de auditoría con perfiles `passive`, `portal` y `full`.
+- Guardrail de modo pasivo que bloquea inicio de portal, deauth, beacon flood, evil twin, auto-attack y karma, manteniendo disponibles escaneos, probe sniffer, captura PMKID, reportes, logs y limpieza.
+- Reporte de sesión compatible con redacción, incluyendo alcance, contadores, hallazgos, estado de datos capturados y log operativo.
+- Documentación de demo guiado para presentar el proyecto sin hardware en vivo.
+- Soporte `GET /api/autoattack?action=suggest` para sugerencias de template desde el dashboard.
+
+### Cambiado
+
+- README, arquitectura, setup, uso y safety ahora explican flujos pasivos, comportamiento de reportes redactados e higiene actual de releases.
+- La guía pública de releases se enfoca en el firmware soportado más reciente en vez de mantener tags obsoletos visibles.
+
+---
+
 ## [1.3.0] - 2026-06-02
 
 ### Agregado
@@ -165,7 +182,5 @@ Primera version estable de ESP8266 PhantomKit — plataforma autonoma de auditor
 
 ---
 
-[1.3.0]: https://github.com/chrisq-dev/phantom-kit/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/chrisq-dev/phantom-kit/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/chrisq-dev/phantom-kit/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.0.0
+[1.4.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.4.0
+[1.3.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.3.0

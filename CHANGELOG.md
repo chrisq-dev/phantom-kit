@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-06-23
+
+### Added
+
+- Audit wizard with `passive`, `portal`, and `full` profiles.
+- Passive-mode guardrail that blocks portal start, deauth, beacon flood, evil twin, auto-attack, and karma while keeping scans, probe sniffing, PMKID capture, reports, logs, and cleanup available.
+- Redaction-aware session report with audit scope, counters, findings, captured-data status, and operational log.
+- Guided portfolio demo documentation for presenting the project without live hardware.
+- `GET /api/autoattack?action=suggest` support for dashboard template suggestions.
+
+### Changed
+
+- README, architecture, setup, usage, and safety docs now explain passive workflows, report redaction behavior, and current release hygiene.
+- Public release guidance now focuses on the latest supported firmware instead of keeping obsolete release tags visible.
+
+---
+
 ## [1.3.0] - 2026-06-02
 
 ### Added
@@ -165,7 +182,5 @@ First stable release of ESP8266 PhantomKit — a self-contained Wi-Fi security a
 
 ---
 
-[1.3.0]: https://github.com/chrisq-dev/phantom-kit/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/chrisq-dev/phantom-kit/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/chrisq-dev/phantom-kit/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.0.0
+[1.4.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.4.0
+[1.3.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.3.0
