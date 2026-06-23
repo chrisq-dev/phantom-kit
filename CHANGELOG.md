@@ -183,4 +183,3 @@ First stable release of ESP8266 PhantomKit — a self-contained Wi-Fi security a
 ---
 
 [1.4.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.4.0
-[1.3.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.3.0

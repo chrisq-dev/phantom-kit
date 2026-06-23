@@ -183,4 +183,3 @@ Primera version estable de ESP8266 PhantomKit — plataforma autonoma de auditor
 ---
 
 [1.4.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.4.0
-[1.3.0]: https://github.com/chrisq-dev/phantom-kit/releases/tag/v1.3.0
