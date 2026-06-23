@@ -13,12 +13,29 @@ http://192.168.4.1/dashboard
 The dashboard provides:
 
 - Current AP SSID
+- Audit wizard for passive, portal-only, and full-lab profiles
+- Passive mode guardrails for non-disruptive workflows
 - Portal template selection
 - Portal start/stop control
 - Module status counters
 - Redacted captured-field table when demo mode is enabled
 - Live event log
-- Export controls when raw export mode is allowed
+- CSV export when raw export mode is allowed
+- Session report export with redaction-aware evidence
+
+## Audit Wizard
+
+Use the **Audit** tab to define scope before starting modules:
+
+1. Select a profile:
+   - `passive`: blocks deauth, beacon flood, evil twin, auto-attack, portal start, and karma.
+   - `portal`: prepares an authorized captive-portal exercise without enabling deauth.
+   - `full`: enables all modules for isolated lab use.
+2. Enter the authorized SSID/BSSID and channel when known.
+3. Start the audit and keep the live log visible.
+4. Export the session report before wiping artifacts.
+
+Passive mode still allows scans, probe sniffing, PMKID capture, reports, logs, and cleanup actions.
 
 ## Captive Portal
 
@@ -106,6 +123,8 @@ For professional awareness exercises, document:
 - Remediation guidance
 - Cleanup actions performed
 
+The built-in report includes current scope, passive-mode state, counters, observations, captured-data status, and the operational log. When `DASHBOARD_REDACT_CREDENTIALS` is enabled, the report keeps counts and evidence metadata but does not include raw captured fields.
+
 ## Troubleshooting
 
 ### No networks appear during scan
@@ -122,4 +141,4 @@ For professional awareness exercises, document:
 
 ### Export returns 403
 
-CSV/report export is intentionally blocked while `DASHBOARD_REDACT_CREDENTIALS` is enabled. Disable redaction only inside an authorized lab when raw values are required.
+CSV export is intentionally blocked while `DASHBOARD_REDACT_CREDENTIALS` is enabled. The text report remains available with sensitive values redacted. Disable redaction only inside an authorized lab when raw values are required.

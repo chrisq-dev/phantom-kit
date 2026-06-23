@@ -62,7 +62,8 @@ ESP8266 SoftAP: PhantomKit
 - Acciones para iniciar/detener módulos
 - Polling de estado para contadores del dashboard
 - Listado de credenciales con campos redactados cuando `DASHBOARD_REDACT_CREDENTIALS` está activo
-- Bloqueo de exportación CSV/reporte mientras el modo seguro de demo está activo
+- Bloqueo de exportación CSV mientras el modo seguro de demo está activo
+- Reporte de sesión compatible con redacción, con alcance, contadores, hallazgos y logs
 - Exportación PMKID en formato hashcat 22000
 - Endpoint de emergency wipe para limpieza de laboratorio
 
@@ -112,7 +113,7 @@ El ESP8266 tiene RAM limitada y un solo radio Wi-Fi. PhantomKit mantiene una imp
 - La autenticación del dashboard es independiente de la contraseña del AP.
 - Las credenciales por defecto están marcadas como `change-me-*`.
 - `DASHBOARD_REDACT_CREDENTIALS` redacta campos capturados en API/dashboard.
-- Las exportaciones CSV/reporte se desactivan mientras la redacción está activa.
+- La exportación CSV se desactiva mientras la redacción está activa; los reportes de sesión siguen disponibles omitiendo campos crudos.
 - Emergency wipe elimina artefactos sensibles de LittleFS y reinicia el dispositivo.
 - El README, la política SECURITY y los documentos legales incluyen lenguaje de uso responsable.
 

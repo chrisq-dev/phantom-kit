@@ -20,7 +20,9 @@ PhantomKit incluye funciones de simulación Wi-Fi que pueden interrumpir redes o
 | Ruta separada para dashboard | El dashboard usa `/dashboard/login`; el portal cautivo usa `/login` | Evita mezclar autenticación del auditor con entrada del portal |
 | Bloqueo de intentos local | `LOGIN_MAX_ATTEMPTS` + `LOGIN_LOCKOUT_MS` | Reduce riesgo de brute force local |
 | Cookie de sesión endurecida | Cookie HttpOnly con `SameSite=Strict` y token regenerado tras login | Reduce exposición accidental de sesión |
+| Modo pasivo de auditoría | El wizard habilita un perfil que bloquea deauth, beacon flood, evil twin, auto-attack, inicio de portal y karma | Permite observación y reportes sin disrupción RF activa |
 | Modo demo redactado | `DASHBOARD_REDACT_CREDENTIALS` oculta valores crudos y desactiva exports | Hace seguras capturas de pantalla y demos públicas |
+| Reportes compatibles con redacción | Los reportes incluyen alcance, contadores, hallazgos y logs mientras omiten campos crudos si la redacción está activa | Permite evidencia profesional sin filtrar secretos |
 | Redacción en Serial | `SERIAL_REDACT_CREDENTIALS` oculta campos crudos en logs seriales | Evita filtraciones por monitor serial |
 | Emergency wipe autenticado | `/api/panic` requiere sesión del dashboard | Evita borrado no autenticado por cualquier cliente del AP |
 | Buffers acotados | Defaults más pequeños para probes, PMKIDs, targets y credenciales | Reduce presión de memoria y retención innecesaria |
@@ -32,10 +34,11 @@ Antes de cualquier demo o auditoría:
 
 1. Confirmar autorización escrita y alcance.
 2. Cambiar `AP_PASSWORD` y `DASHBOARD_PASSWORD`.
-3. Mantener `DASHBOARD_REDACT_CREDENTIALS=1` para screenshots, portafolio y demos públicas.
-4. Usar credenciales falsas o de entrenamiento cuando sea posible.
-5. Detener módulos activos al terminar el ejercicio.
-6. Ejecutar emergency wipe o wipe por GPIO antes de guardar, compartir o reutilizar el dispositivo.
+3. Usar el perfil pasivo salvo que el alcance escrito autorice módulos activos.
+4. Mantener `DASHBOARD_REDACT_CREDENTIALS=1` para screenshots, portafolio y demos públicas.
+5. Usar credenciales falsas o de entrenamiento cuando sea posible.
+6. Detener módulos activos al terminar el ejercicio.
+7. Ejecutar emergency wipe o wipe por GPIO antes de guardar, compartir o reutilizar el dispositivo.
 
 ## Manejo de Datos
 

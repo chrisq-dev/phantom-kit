@@ -62,7 +62,8 @@ ESP8266 SoftAP: PhantomKit
 - Module start/stop actions
 - Status polling for dashboard counters
 - Credential listing with redacted fields when `DASHBOARD_REDACT_CREDENTIALS` is enabled
-- CSV/report export blocking while demo-safe redaction is active
+- CSV export blocking while demo-safe redaction is active
+- Redaction-aware session report export with scope, counters, findings, and logs
 - PMKID export in hashcat 22000 format
 - Emergency wipe endpoint for lab cleanup
 
@@ -112,7 +113,7 @@ The ESP8266 has limited RAM and a single Wi-Fi radio. PhantomKit keeps the imple
 - Dashboard authentication is separate from the AP password.
 - Default credentials are intentionally marked as `change-me-*`.
 - `DASHBOARD_REDACT_CREDENTIALS` redacts captured fields in API/dashboard output.
-- CSV/report exports are disabled while redaction is enabled.
+- CSV export is disabled while redaction is enabled; session reports remain available with raw fields omitted.
 - Emergency wipe removes sensitive LittleFS artifacts and restarts the device.
 - Legal and responsible-use language is present in the README, SECURITY policy, and legal docs.
 

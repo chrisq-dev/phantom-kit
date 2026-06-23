@@ -42,7 +42,7 @@ This project demonstrates practical skills across:
 - Security tooling design through a local dashboard, authenticated APIs, logging, export flows, and modular attack components
 - Responsible security communication with legal scope, documented limitations, CI, contribution guidelines, and bilingual documentation
 
-For demos, keep `DASHBOARD_REDACT_CREDENTIALS` enabled so screenshots and API responses show redacted sample values instead of sensitive captured data. CSV/report exports are disabled while this mode is active.
+For demos, keep `DASHBOARD_REDACT_CREDENTIALS` enabled so screenshots, API responses, and reports avoid exposing sensitive captured data. CSV raw export stays disabled while this mode is active.
 
 ### What This Project Shows
 
@@ -77,7 +77,7 @@ PhantomKit assumes a short-range lab environment where the operator controls the
 | Asset | Risk | Mitigation |
 |---|---|---|
 | Dashboard access | Unauthorized local client controls modules | Separate dashboard password, default-credential guard, lockout, HttpOnly session cookie |
-| Captured inputs | Sensitive values exposed in demos/logs | Redacted dashboard/API mode, blocked exports while redacted, serial redaction |
+| Captured inputs | Sensitive values exposed in demos/logs | Redacted dashboard/API mode, redaction-aware reports, blocked raw CSV while redacted, serial redaction |
 | Stored artifacts | LittleFS data readable with physical access | Emergency wipe, GPIO wipe, documented plaintext limitation |
 | Nearby networks | Accidental disruption outside scope | Legal docs, usage scope, module start/stop boundaries, operator checklist |
 | Release integrity | Unreviewed local firmware distributed | GitHub Actions release assets plus SHA-256 checksums |
@@ -90,8 +90,11 @@ Safety controls are documented in [Safety by Design](docs/safety.md).
 
 ### Web Dashboard
 - Full control from any device with a browser
+- Audit wizard with passive, portal-only, and full-lab profiles
+- Passive mode that blocks active modules and keeps scan/sniffer/report workflows available
 - Real-time credential capture table
 - Live event log with timestamps
+- Session report export with scope, counters, findings, and operational log
 - Configurable SSID without reflashing
 - Fully autonomous — no internet or external server needed
 
@@ -101,7 +104,7 @@ Safety controls are documented in [Safety by Design](docs/safety.md).
 |--------|-------------|-----------|
 | Evil Portal | Captive portal with 8 cloned templates | DNS Spoofing + Captive Portal |
 | Deauth Attack | Disconnects devices from a target network | IEEE 802.11 Deauth Frames |
-| Beacon Flood | Saturates scan lists with 50+ fake SSIDs | Fake Beacon Frames |
+| Beacon Flood | Saturates scan lists with rotating fake SSIDs | Fake Beacon Frames |
 | Probe Sniffer | Detects networks sought by nearby devices | Passive Probe Capture |
 | Evil Twin | Clones an existing Wi-Fi network | SSID/BSSID Spoofing |
 | Channel Hopping | Automatic rotation across channels 1–13 | Multi-channel Scanning |
@@ -300,7 +303,7 @@ lib_deps =
 |---------|--------|
 | v1.0 | Evil Portal with 8 templates (Facebook, Instagram, Microsoft, X, Google, WiFi Login, Netflix, WhatsApp) |
 | v1.0 | Deauth Attack — IEEE 802.11 deauthentication frames |
-| v1.0 | Beacon Flood — 50+ fake SSIDs |
+| v1.0 | Beacon Flood — rotating fake SSIDs |
 | v1.0 | Probe Request Sniffer — passive capture |
 | v1.0 | Evil Twin — SSID/BSSID cloning |
 | v1.0 | Auto-Portal — environment scan and template recommendation |

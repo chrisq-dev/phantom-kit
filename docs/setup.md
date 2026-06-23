@@ -98,7 +98,7 @@ For portfolio demos, keep credential redaction enabled:
 #define DASHBOARD_REDACT_CREDENTIALS 1
 ```
 
-When enabled, dashboard/API credential fields are redacted and CSV/report exports are blocked.
+When enabled, dashboard/API credential fields are redacted and raw CSV export is blocked. Session reports remain available with sensitive fields omitted.
 
 ## Included Modules
 

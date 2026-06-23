@@ -32,6 +32,26 @@ Muestra en tiempo real todas las credenciales capturadas:
 
 Muestra todos los eventos del sistema con timestamp.
 
+## Wizard de Auditoría
+
+La pestaña **Auditoría** permite fijar el alcance antes de iniciar módulos:
+
+1. Selecciona un perfil:
+   - `passive`: bloquea deauth, beacon flood, evil twin, auto-attack, inicio de portal y karma.
+   - `portal`: prepara un ejercicio de portal cautivo autorizado sin activar deauth.
+   - `full`: habilita todos los módulos para laboratorio aislado.
+2. Ingresa SSID/BSSID y canal autorizados cuando los conozcas.
+3. Inicia la auditoría y revisa el log operativo.
+4. Exporta el reporte de sesión antes de borrar artefactos.
+
+El modo pasivo mantiene disponibles escaneos, probe sniffer, captura PMKID, reportes, logs y limpieza.
+
+## Reportes
+
+El reporte integrado incluye alcance actual, estado de modo pasivo, contadores, observaciones, estado de datos capturados y log operativo. Cuando `DASHBOARD_REDACT_CREDENTIALS` está activado, el reporte conserva conteos y metadatos de evidencia, pero no incluye campos capturados crudos.
+
+La exportación CSV sigue bloqueada mientras la redacción está activa. Desactiva redacción solo dentro de un laboratorio autorizado cuando se requieren valores crudos.
+
 ## Módulos de Ataque
 
 ### 1. Portal (Captive Portal)
@@ -77,7 +97,7 @@ Muestra todos los eventos del sistema con timestamp.
 4. Clic en **Detener** para limpiar
 
 **Características:**
-- 50+ SSIDs predefinidos (algunos divertidos)
+- SSIDs predefinidos rotativos con límite reducido para cuidar RAM
 - Generación automática de BSSIDs
 - Contador de beacons enviados en tiempo real
 
@@ -132,7 +152,7 @@ Muestra todos los eventos del sistema con timestamp.
 3. **Activar Portal:** Activa el captive portal
 4. **Esperar:** Las víctimas se conectan y ven el portal
 5. **Capturar:** Las credenciales aparecen en el dashboard
-6. **Documentar:** Copia las credenciales para el reporte
+6. **Documentar:** Exporta el reporte de sesión y evita copiar valores crudos fuera del laboratorio
 
 ### Auditoría Avanzada
 1. **Reconocimiento:** Usa Probe Sniffer para ver redes buscadas

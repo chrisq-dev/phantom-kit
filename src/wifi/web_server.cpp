@@ -10,6 +10,7 @@ extern APManager apManager;
 extern CaptivePortal captivePortal;
 
 extern String logBuffer;
+extern void addLog(const String& msg);
 
 const char DASH_CSS[] PROGMEM = R"rawliteral(
 *{margin:0;padding:0;box-sizing:border-box}
@@ -97,6 +98,10 @@ PhantomWebServer::PhantomWebServer(CredentialStore& store, CaptivePortal& portal
       evilTwin(evilTwin), autoPortal(autoPortal), pmkid(pmkid) {
     failedLoginAttempts = 0;
     loginLockedUntil = 0;
+    passiveModeEnabled = false;
+    auditProfile = "full";
+    auditTargetChannel = AP_CHANNEL;
+    auditStartedAt = 0;
     generateSessionToken();
 }
 
@@ -128,6 +133,15 @@ bool PhantomWebServer::defaultCredentialsActive() {
 
 bool PhantomWebServer::loginLocked() {
     return loginLockedUntil != 0 && millis() < loginLockedUntil;
+}
+
+bool PhantomWebServer::rejectIfPassive(const char* moduleName) {
+    if (!passiveModeEnabled) {
+        return false;
+    }
+    addLog(String("[SAFETY] Bloqueado por modo pasivo: ") + moduleName);
+    server.send(403, "application/json", "{\"ok\":false,\"error\":\"passive_mode\"}");
+    return true;
 }
 
 String PhantomWebServer::jsonEscape(const String& value) {
@@ -239,7 +253,82 @@ void PhantomWebServer::handleAPIStealth() {
     String val = server.arg("enabled");
     bool enabled = (val == "true" || val == "1");
     ap.setStealthMode(enabled);
+    addLog(String("[CONFIG] Stealth mode ") + (enabled ? "activado" : "desactivado"));
     server.send(200, "application/json", String("{\"stealth\":") + (enabled ? "true" : "false") + "}");
+}
+
+void PhantomWebServer::handleAPIPassive() {
+    String val = server.arg("enabled");
+    passiveModeEnabled = (val == "true" || val == "1" || val == "start");
+    if (passiveModeEnabled) {
+        deauth.stopAttack();
+        beacon.stopFlood();
+        evilTwin.stopClone();
+        probe.setKarmaMode(false);
+        portal.setActive(false);
+        addLog("[SAFETY] Modo pasivo activado: modulos activos detenidos");
+    } else {
+        addLog("[SAFETY] Modo pasivo desactivado");
+    }
+    server.send(200, "application/json", String("{\"ok\":true,\"passive\":") + (passiveModeEnabled ? "true" : "false") + "}");
+}
+
+void PhantomWebServer::handleAPIAudit() {
+    String action = server.arg("action");
+    if (action == "stop") {
+        auditStartedAt = 0;
+        auditProfile = "full";
+        auditTargetSSID = "";
+        auditTargetBSSID = "";
+        passiveModeEnabled = false;
+        addLog("[AUDIT] Auditoria cerrada");
+        server.send(200, "application/json", "{\"ok\":true,\"started\":false}");
+        return;
+    }
+
+    if (action != "start") {
+        server.send(400, "text/plain", "action requerido: start|stop");
+        return;
+    }
+
+    auditProfile = server.arg("profile");
+    if (auditProfile != "passive" && auditProfile != "portal" && auditProfile != "full") {
+        auditProfile = "passive";
+    }
+    auditTargetSSID = server.arg("ssid");
+    auditTargetBSSID = server.arg("bssid");
+    auditTargetChannel = server.arg("channel").toInt();
+    if (auditTargetChannel < MIN_CHANNEL || auditTargetChannel > MAX_CHANNEL) {
+        auditTargetChannel = AP_CHANNEL;
+    }
+    auditStartedAt = millis();
+    passiveModeEnabled = (auditProfile == "passive");
+
+    if (passiveModeEnabled) {
+        deauth.stopAttack();
+        beacon.stopFlood();
+        evilTwin.stopClone();
+        probe.setKarmaMode(false);
+        portal.setActive(false);
+        if (!probe.isRunning()) {
+            probe.startSniffing(auditTargetChannel);
+        }
+    } else if (auditProfile == "portal") {
+        if (auditTargetSSID.length() > 0) {
+            ap.setSSID(auditTargetSSID);
+            ap.restartAP();
+        }
+        portal.setActive(true);
+    }
+
+    addLog("[AUDIT] Inicio perfil=" + auditProfile +
+           " ssid=" + (auditTargetSSID.length() ? auditTargetSSID : "-") +
+           " bssid=" + (auditTargetBSSID.length() ? auditTargetBSSID : "-") +
+           " canal=" + String(auditTargetChannel));
+
+    String j = "{\"ok\":true,\"profile\":\"" + jsonEscape(auditProfile) + "\",";
+    j += "\"passive\":" + String(passiveModeEnabled ? "true" : "false") + "}";
+    server.send(200, "application/json", j);
 }
 
 void PhantomWebServer::begin() {
@@ -285,6 +374,8 @@ void PhantomWebServer::begin() {
     server.on("/api/eviltwin",   HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIEvilTwin(); });
     server.on("/api/autoportal", HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIAutoPortal(); });
     server.on("/api/stealth",    HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIStealth(); });
+    server.on("/api/passive",    HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIPassive(); });
+    server.on("/api/audit",      HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; } handleAPIAudit(); });
     server.on("/api/notify",     HTTP_POST, [this]() { if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
         String url   = server.arg("url");
         String topic = server.arg("topic");
@@ -304,6 +395,10 @@ void PhantomWebServer::begin() {
 
     // Auto-Attack chain
     server.on("/api/autoattack", HTTP_POST, [this]() {
+        if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        handleAPIAutoAttack();
+    });
+    server.on("/api/autoattack", HTTP_GET, [this]() {
         if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
         handleAPIAutoAttack();
     });
@@ -358,6 +453,7 @@ void PhantomWebServer::handleDashboard() {
     
     html += "<nav class='tabs'>";
     html += "<button class='tab a' onclick='showTab(this,\"portal\")'>Portal</button>";
+    html += "<button class='tab' onclick='showTab(this,\"audit\")'>Auditoria</button>";
     html += "<button class='tab' onclick='showTab(this,\"autoattack\")'>&#9889; Auto-Attack</button>";
     html += "<button class='tab' onclick='showTab(this,\"deauth\")'>Deauth</button>";
     html += "<button class='tab' onclick='showTab(this,\"beacon\")'>Beacon</button>";
@@ -367,6 +463,21 @@ void PhantomWebServer::handleDashboard() {
     html += "<button class='tab' onclick='showTab(this,\"settings\")'>Ajustes</button>";
     html += "</nav>";
     
+    html += "<div id='tab-audit' style='display:none'><div class='g'>";
+    html += "<div class='card'><h2>Wizard de Auditoria</h2>";
+    html += "<div class='fg'><label>Perfil</label><select id='audProfile'><option value='passive'>Pasivo</option><option value='portal'>Portal autorizado</option><option value='full'>Laboratorio completo</option></select></div>";
+    html += "<div class='fg'><label>SSID objetivo</label><input type='text' id='audSsid' placeholder='Red autorizada'></div>";
+    html += "<div class='fg'><label>BSSID objetivo</label><input type='text' id='audBssid' placeholder='AA:BB:CC:DD:EE:FF'></div>";
+    html += "<div class='fg'><label>Canal</label><input type='number' id='audCh' min='1' max='13' value='6'></div>";
+    html += "<div class='bg'><button class='bs' onclick='startAudit()'>Iniciar auditoria</button><button class='bp' onclick='stopAudit()'>Cerrar</button></div>";
+    html += "</div><div class='card'><h2>Alcance activo</h2><div class='stats'>";
+    html += "<div class='stat'><span class='sv' id='audMode'>-</span><span class='sl'>Perfil</span></div>";
+    html += "<div class='stat'><span class='sv' id='audPassive'>-</span><span class='sl'>Pasivo</span></div>";
+    html += "<div class='stat'><span class='sv' id='audTarget'>-</span><span class='sl'>Objetivo</span></div>";
+    html += "</div><p style='color:#666;font-size:11px;margin-top:12px'>El perfil pasivo bloquea deauth, beacon flood, evil twin, auto-attack y karma; permite escaneo, probe sniffer, PMKID y reportes.</p></div>";
+    html += "<div class='card f'><h2>Checklist</h2><table><tbody><tr><td>1</td><td>Define alcance autorizado</td></tr><tr><td>2</td><td>Ejecuta captura pasiva o modulo acordado</td></tr><tr><td>3</td><td>Exporta reporte de sesion</td></tr><tr><td>4</td><td>Activa wipe si hay datos sensibles</td></tr></tbody></table></div>";
+    html += "</div></div>";
+
     html += "<div id='tab-autoattack' style='display:none'><div class='g'>";
     html += "<div class='card'><h2>&#9889; Auto-Attack</h2>";
     html += "<p style='color:#666;font-size:11px;margin-bottom:12px'>Un clic: escanea, cambia SSID, deautentica clientes y activa el portal con el template ideal.</p>";
@@ -505,6 +616,10 @@ void PhantomWebServer::handleDashboard() {
     // Inline probe devices update function
     html += "<script>";
     html += FPSTR(DASH_JS);
+    html += "\nfunction updAudit(d){var m=document.getElementById('audMode'),p=document.getElementById('audPassive'),t=document.getElementById('audTarget');if(!m)return;m.textContent=d.audit_profile||'-';p.textContent=d.passive_mode?'Si':'No';t.textContent=d.audit_ssid||d.audit_bssid||'-'}";
+    html += "\nfunction startAudit(){var pr=document.getElementById('audProfile').value,s=document.getElementById('audSsid').value,b=document.getElementById('audBssid').value,c=document.getElementById('audCh').value;p('/api/audit','action=start&profile='+encodeURIComponent(pr)+'&ssid='+encodeURIComponent(s)+'&bssid='+encodeURIComponent(b)+'&channel='+c).then(function(r){return r.json()}).then(function(){uS();uL()})}";
+    html += "\nfunction stopAudit(){p('/api/audit','action=stop').then(function(){uS();uL()})}";
+    html += "\nfunction setPassive(v){p('/api/passive','enabled='+(v?'1':'0')).then(function(){uS();uL()})}";
     html += "\nfunction uP(){fetch('/api/probe/devices').then(function(r){return r.json()}).then(function(d){";
     html += "document.getElementById('sPD').textContent=d.length;";
     html += "if(d.length===0){document.getElementById('pd').innerHTML='<p class=e>Sin dispositivos</p>';return}";
@@ -540,7 +655,7 @@ void PhantomWebServer::handleDashboard() {
     html += "\nvar _prevCreds=0;function chkToast(d){if(d.credentials>_prevCreds&&_prevCreds>0){showToast('Nueva credencial capturada (#'+d.credentials+')')}  _prevCreds=d.credentials}";
     html += "\nfunction showToast(msg){var t=document.createElement('div');t.style='position:fixed;top:16px;right:16px;background:#00d4ff;color:#000;padding:12px 20px;border-radius:8px;font-family:monospace;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,212,255,.4);animation:slideIn .3s ease';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},5000)}";
     html += "\n/* status poll override to include chkToast and PMKID poll */";
-    html += "\nsetInterval(function(){fetch('/api/status').then(function(r){return r.json()}).then(function(d){chkToast(d);document.getElementById('sC').textContent=d.clients;document.getElementById('sR').textContent=d.credentials;document.getElementById('sDF').textContent=d.deauth_frames;document.getElementById('sDS').textContent=d.deauth_active?'Activo':'Inactivo';document.getElementById('sBC').textContent=d.beacon_count;document.getElementById('sBS').textContent=d.beacon_active?'Activo':'Inactivo';document.getElementById('sPC').textContent=d.probe_count;document.getElementById('sPD').textContent=d.probe_devices||0;document.getElementById('sPS').textContent=d.probe_active?'Activo':'Inactivo';document.getElementById('sPMC').textContent=d.pmkid_count||0;document.getElementById('sPMS').textContent=d.pmkid_active?'Capturando':'Inactivo';if(d.karma_active){document.getElementById('karmaLbl').textContent='ACTIVO - '+d.karma_ssid;document.getElementById('karmaLbl').style.color='#ff4444'}else{document.getElementById('karmaLbl').textContent='Inactivo';document.getElementById('karmaLbl').style.color=''}var dot=document.getElementById('sd');var st=document.getElementById('st');if(d.portal_active){dot.style.background='#00ff88';st.textContent='Portal activo'}else{dot.style.background='#ff4444';st.textContent='Inactivo'}})},3000);";
+    html += "\nsetInterval(function(){fetch('/api/status').then(function(r){return r.json()}).then(function(d){chkToast(d);updAudit(d);document.getElementById('sC').textContent=d.clients;document.getElementById('sR').textContent=d.credentials;document.getElementById('sDF').textContent=d.deauth_frames;document.getElementById('sDS').textContent=d.deauth_active?'Activo':'Inactivo';document.getElementById('sBC').textContent=d.beacon_count;document.getElementById('sBS').textContent=d.beacon_active?'Activo':'Inactivo';document.getElementById('sPC').textContent=d.probe_count;document.getElementById('sPD').textContent=d.probe_devices||0;document.getElementById('sPS').textContent=d.probe_active?'Activo':'Inactivo';document.getElementById('sPMC').textContent=d.pmkid_count||0;document.getElementById('sPMS').textContent=d.pmkid_active?'Capturando':'Inactivo';if(d.karma_active){document.getElementById('karmaLbl').textContent='ACTIVO - '+d.karma_ssid;document.getElementById('karmaLbl').style.color='#ff4444'}else{document.getElementById('karmaLbl').textContent='Inactivo';document.getElementById('karmaLbl').style.color=''}var dot=document.getElementById('sd');var st=document.getElementById('st');if(d.passive_mode){dot.style.background='#00d4ff';st.textContent='Modo pasivo'}else if(d.portal_active){dot.style.background='#00ff88';st.textContent='Portal activo'}else{dot.style.background='#ff4444';st.textContent='Inactivo'}})},3000);";
     html += "</script></body></html>";
 
     server.send(200, "text/html", html);
@@ -565,7 +680,13 @@ void PhantomWebServer::handleAPIStatus() {
     j += "\"karma_ssid\":\"" + jsonEscape(probe.getKarmaSSID()) + "\",";
     j += "\"pmkid_count\":" + String(pmkid.getCaptureCount()) + ",";
     j += "\"pmkid_active\":" + String(pmkid.isCapturing() ? "true" : "false") + ",";
-    j += "\"eviltwin_active\":" + String(evilTwin.isActive() ? "true" : "false");
+    j += "\"eviltwin_active\":" + String(evilTwin.isActive() ? "true" : "false") + ",";
+    j += "\"passive_mode\":" + String(passiveModeEnabled ? "true" : "false") + ",";
+    j += "\"audit_profile\":\"" + jsonEscape(auditProfile) + "\",";
+    j += "\"audit_ssid\":\"" + jsonEscape(auditTargetSSID) + "\",";
+    j += "\"audit_bssid\":\"" + jsonEscape(auditTargetBSSID) + "\",";
+    j += "\"audit_channel\":" + String(auditTargetChannel) + ",";
+    j += "\"audit_started\":" + String(auditStartedAt > 0 ? "true" : "false");
     j += "}";
     server.send(200, "application/json", j);
 }
@@ -580,59 +701,68 @@ void PhantomWebServer::handleAPILog() {
 
 void PhantomWebServer::handleAPIControl() {
     String a = server.arg("action");
-    if (a == "start") { portal.setActive(true); server.send(200, "text/plain", "OK"); }
-    else if (a == "stop") { portal.setActive(false); server.send(200, "text/plain", "OK"); }
+    if (a == "start") {
+        if (rejectIfPassive("portal")) return;
+        portal.setActive(true);
+        addLog("[PORTAL] Portal activado");
+        server.send(200, "text/plain", "OK");
+    }
+    else if (a == "stop") {
+        portal.setActive(false);
+        addLog("[PORTAL] Portal detenido");
+        server.send(200, "text/plain", "OK");
+    }
     else { server.send(400, "text/plain", "Error"); }
 }
 
 void PhantomWebServer::handleAPITemplate() {
     int i = server.arg("index").toInt();
-    if (i >= 0 && i < TEMPLATE_COUNT) { portal.setTemplate(i); server.send(200, "text/plain", "OK"); }
+    if (i >= 0 && i < TEMPLATE_COUNT) { portal.setTemplate(i); addLog("[PORTAL] Template cambiado: " + String(TEMPLATE_NAMES[i])); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
 void PhantomWebServer::handleAPISSID() {
     String s = server.arg("ssid");
-    if (s.length() > 0 && s.length() <= 32) { ap.setSSID(s); ap.restartAP(); server.send(200, "text/plain", "OK"); }
+    if (s.length() > 0 && s.length() <= 32) { ap.setSSID(s); ap.restartAP(); addLog("[AP] SSID cambiado: " + s); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
-void PhantomWebServer::handleAPIClear() { store.clear(); server.send(200, "text/plain", "OK"); }
+void PhantomWebServer::handleAPIClear() { store.clear(); addLog("[DATA] Credenciales borradas desde dashboard"); server.send(200, "text/plain", "OK"); }
 
 void PhantomWebServer::handleAPIDeauth() {
     String a = server.arg("action");
-    if (a == "start") { deauth.startAttack(server.arg("bssid"), server.arg("channel").toInt()); server.send(200, "text/plain", "OK"); }
-    else if (a == "stop") { deauth.stopAttack(); server.send(200, "text/plain", "OK"); }
-    else if (a == "scan") { deauth.scanAllChannels(); server.send(200, "text/plain", deauth.getTargetsJSON()); }
+    if (a == "start") { if (rejectIfPassive("deauth")) return; deauth.startAttack(server.arg("bssid"), server.arg("channel").toInt()); addLog("[DEAUTH] Iniciado contra " + server.arg("bssid")); server.send(200, "text/plain", "OK"); }
+    else if (a == "stop") { deauth.stopAttack(); addLog("[DEAUTH] Detenido"); server.send(200, "text/plain", "OK"); }
+    else if (a == "scan") { deauth.scanAllChannels(); addLog("[SCAN] Redes detectadas: " + String(deauth.getTargetCount())); server.send(200, "text/plain", deauth.getTargetsJSON()); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
 void PhantomWebServer::handleAPIBeacon() {
     String a = server.arg("action");
-    if (a == "start") { beacon.startFlood(server.arg("channel").toInt()); server.send(200, "text/plain", "OK"); }
-    else if (a == "stop") { beacon.stopFlood(); server.send(200, "text/plain", "OK"); }
+    if (a == "start") { if (rejectIfPassive("beacon flood")) return; beacon.startFlood(server.arg("channel").toInt()); addLog("[BEACON] Flood iniciado"); server.send(200, "text/plain", "OK"); }
+    else if (a == "stop") { beacon.stopFlood(); addLog("[BEACON] Flood detenido"); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
 void PhantomWebServer::handleAPIProbe() {
     String a = server.arg("action");
-    if (a == "start") { probe.startSniffing(server.arg("channel").toInt()); server.send(200, "text/plain", "OK"); }
-    else if (a == "stop") { probe.stopSniffing(); server.send(200, "text/plain", "OK"); }
+    if (a == "start") { probe.startSniffing(server.arg("channel").toInt()); addLog("[PROBE] Sniffer iniciado"); server.send(200, "text/plain", "OK"); }
+    else if (a == "stop") { probe.stopSniffing(); addLog("[PROBE] Sniffer detenido"); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
 void PhantomWebServer::handleAPIEvilTwin() {
     String a = server.arg("action");
-    if (a == "scan") { evilTwin.scanAllChannels(); server.send(200, "text/plain", evilTwin.getTargetsJSON()); }
-    else if (a == "clone") { evilTwin.cloneTarget(server.arg("ssid"), server.arg("bssid"), server.arg("channel").toInt()); server.send(200, "text/plain", "OK"); }
-    else if (a == "stop") { evilTwin.stopClone(); server.send(200, "text/plain", "OK"); }
+    if (a == "scan") { evilTwin.scanAllChannels(); addLog("[EVILTWIN] Scan completado"); server.send(200, "text/plain", evilTwin.getTargetsJSON()); }
+    else if (a == "clone") { if (rejectIfPassive("evil twin")) return; evilTwin.cloneTarget(server.arg("ssid"), server.arg("bssid"), server.arg("channel").toInt()); addLog("[EVILTWIN] Clon activo: " + server.arg("ssid")); server.send(200, "text/plain", "OK"); }
+    else if (a == "stop") { evilTwin.stopClone(); addLog("[EVILTWIN] Detenido"); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
 void PhantomWebServer::handleAPIAutoPortal() {
     String a = server.arg("action");
-    if (a == "start") { autoPortal.startAutoScan(); server.send(200, "text/plain", "OK"); }
-    else if (a == "stop") { autoPortal.stopAutoScan(); server.send(200, "text/plain", "OK"); }
+    if (a == "start") { autoPortal.startAutoScan(); addLog("[AUTOPORTAL] Scan iniciado"); server.send(200, "text/plain", "OK"); }
+    else if (a == "stop") { autoPortal.stopAutoScan(); addLog("[AUTOPORTAL] Scan detenido"); server.send(200, "text/plain", "OK"); }
     else { server.send(400, "text/plain", "Error"); }
 }
 
@@ -674,6 +804,7 @@ void PhantomWebServer::handleAPIAutoAttack() {
         return;
     }
     if (action == "start" && bssid.length() == 17 && ch > 0) {
+        if (rejectIfPassive("auto-attack")) return;
         // 1. Auto-match template from SSID
         int tpl = AutoPortalModule::suggestTemplate(ssid);
         // 2. Set AP SSID to target SSID
@@ -686,10 +817,12 @@ void PhantomWebServer::handleAPIAutoAttack() {
         portal.setActive(true);
         String j = "{\"ok\":true,\"template\":" + String(tpl);
         j += ",\"template_name\":\"" + jsonEscape(AutoPortalModule::getTemplateNameFor(ssid)) + "\"}";
+        addLog("[AUTOATTACK] Activo ssid=" + ssid + " bssid=" + bssid + " canal=" + String(ch));
         server.send(200, "application/json", j);
     } else if (action == "stop") {
         deauth.stopAttack();
         portal.setActive(false);
+        addLog("[AUTOATTACK] Detenido");
         server.send(200, "application/json", "{\"ok\":true}");
     } else {
         server.send(400, "text/plain", "Parametros invalidos");
@@ -702,12 +835,15 @@ void PhantomWebServer::handleAPIAutoAttack() {
 void PhantomWebServer::handleAPIKarma() {
     String action = server.arg("action");
     if (action == "start") {
+        if (rejectIfPassive("karma")) return;
         // Ensure probe sniffer is running
         if (!probe.isRunning()) probe.startSniffing(1);
         probe.setKarmaMode(true, karmaCallback);
+        addLog("[KARMA] Activado");
         server.send(200, "application/json", "{\"ok\":true,\"karma\":true}");
     } else if (action == "stop") {
         probe.setKarmaMode(false);
+        addLog("[KARMA] Detenido");
         server.send(200, "application/json", "{\"ok\":true,\"karma\":false}");
     } else {
         server.send(400, "text/plain", "action requerido: start|stop");
@@ -722,9 +858,11 @@ void PhantomWebServer::handleAPIPMKID() {
     String bssid  = server.arg("bssid");
     if (action == "start") {
         pmkid.startCapture(bssid);
+        addLog("[PMKID] Captura iniciada bssid=" + (bssid.length() ? bssid : String("*")));
         server.send(200, "application/json", "{\"ok\":true}");
     } else if (action == "stop") {
         pmkid.stopCapture();
+        addLog("[PMKID] Captura detenida, hashes=" + String(pmkid.getCaptureCount()));
         server.send(200, "application/json",
             String("{\"ok\":true,\"count\":") + pmkid.getCaptureCount() + "}");
     } else {
@@ -749,17 +887,13 @@ void PhantomWebServer::handleAPIPanic() {
 }
 
 void PhantomWebServer::handleAPIExportReport() {
-#if DASHBOARD_REDACT_CREDENTIALS
-    server.send(403, "text/plain", "Report export disabled while DASHBOARD_REDACT_CREDENTIALS is enabled");
-    return;
-#endif
     unsigned long uptime = millis() / 1000;
     unsigned long hrs  = uptime / 3600;
     unsigned long mins = (uptime % 3600) / 60;
     unsigned long secs = uptime % 60;
 
     String report;
-    report.reserve(2048);
+    report.reserve(3072);
     report += "========================================\n";
     report += "  PhantomKit - Reporte de Sesion\n";
     report += "========================================\n\n";
@@ -772,6 +906,21 @@ void PhantomWebServer::handleAPIExportReport() {
     report += "Credenciales       : ";
     report += String(store.getCount());
     report += "\n";
+    report += "Modo pasivo        : ";
+    report += passiveModeEnabled ? "si" : "no";
+    report += "\n";
+    report += "Perfil auditoria   : ";
+    report += auditProfile;
+    report += "\n";
+    report += "SSID objetivo      : ";
+    report += auditTargetSSID.length() ? auditTargetSSID : "-";
+    report += "\n";
+    report += "BSSID objetivo     : ";
+    report += auditTargetBSSID.length() ? auditTargetBSSID : "-";
+    report += "\n";
+    report += "Canal objetivo     : ";
+    report += String(auditTargetChannel);
+    report += "\n";
     report += "Template activo    : ";
     report += String(TEMPLATE_NAMES[portal.getCurrentTemplate()]);
     report += "\n";
@@ -783,11 +932,43 @@ void PhantomWebServer::handleAPIExportReport() {
     report += "\n";
     report += "Probes capturados  : ";
     report += String(probe.getProbesCaptured());
+    report += "\n";
+    report += "Dispositivos probe : ";
+    report += String(probe.getDeviceCount());
+    report += "\n";
+    report += "PMKIDs capturados  : ";
+    report += String(pmkid.getCaptureCount());
     report += "\n\n";
+
+    report += "----------------------------------------\n";
+    report += "  Hallazgos / observaciones\n";
+    report += "----------------------------------------\n";
+    if (passiveModeEnabled) {
+        report += "- Auditoria en modo pasivo: no se ejecutaron modulos activos desde el dashboard.\n";
+    }
+    if (probe.getDeviceCount() > 0) {
+        report += "- Hay dispositivos emitiendo probe requests cerca del laboratorio.\n";
+    }
+    if (pmkid.getCaptureCount() > 0) {
+        report += "- Se capturaron PMKIDs; tratar como material sensible de auditoria.\n";
+    }
+    if (store.getCount() > 0) {
+        report += "- El portal registro envios de formulario; requiere manejo y borrado seguro.\n";
+    }
+    if (probe.getDeviceCount() == 0 && pmkid.getCaptureCount() == 0 && store.getCount() == 0) {
+        report += "- Sin hallazgos registrados por los modulos durante esta sesion.\n";
+    }
+    report += "\n";
+
     report += "----------------------------------------\n";
     report += "  Credenciales capturadas\n";
     report += "----------------------------------------\n";
 
+#if DASHBOARD_REDACT_CREDENTIALS
+    report += "Redactado por DASHBOARD_REDACT_CREDENTIALS=1. Conteo: ";
+    report += String(store.getCount());
+    report += "\n";
+#else
     if (LittleFS.exists("/credentials.csv")) {
         File f = LittleFS.open("/credentials.csv", "r");
         if (f) {
@@ -807,9 +988,19 @@ void PhantomWebServer::handleAPIExportReport() {
     } else {
         report += "Sin credenciales en esta sesion.\n";
     }
+#endif
+
+    report += "\n----------------------------------------\n";
+    report += "  Log operativo\n";
+    report += "----------------------------------------\n";
+    if (logBuffer.length() > 0) {
+        report += logBuffer;
+    } else {
+        report += "Sin eventos registrados.\n";
+    }
 
     report += "\n========================================\n";
-    report += "  Generado por PhantomKit v1.2.0\n";
+    report += "  Generado por PhantomKit v1.3.0\n";
     report += "  Solo para auditorias autorizadas\n";
     report += "========================================\n";
 

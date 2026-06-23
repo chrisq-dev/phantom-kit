@@ -20,7 +20,9 @@ PhantomKit includes Wi-Fi security simulation features that can disrupt networks
 | Separate dashboard route | Dashboard auth uses `/dashboard/login`; captive portal submissions use `/login` | Avoids confusing operator auth with portal input |
 | Local login lockout | `LOGIN_MAX_ATTEMPTS` + `LOGIN_LOCKOUT_MS` | Reduces local brute-force risk |
 | Session cookie hardening | HttpOnly cookie with `SameSite=Strict` and regenerated token after login | Reduces accidental session exposure |
+| Passive audit mode | Audit wizard enables a profile that blocks deauth, beacon flood, evil twin, auto-attack, portal start, and karma | Allows observation and reporting without active RF disruption |
 | Redacted demo mode | `DASHBOARD_REDACT_CREDENTIALS` blocks raw dashboard/API values and disables exports | Keeps portfolio screenshots and demos safe |
+| Redaction-aware reports | Session reports include scope, counters, findings, and logs while omitting raw captured fields when redaction is enabled | Supports professional evidence without leaking secrets |
 | Serial redaction | `SERIAL_REDACT_CREDENTIALS` hides raw captured fields in serial logs | Prevents raw secrets leaking through serial monitors |
 | Authenticated emergency wipe | `/api/panic` requires dashboard session | Prevents unauthenticated data deletion by any AP client |
 | Bounded capture buffers | Smaller defaults for probes, PMKIDs, targets, and credentials | Reduces memory pressure and limits unnecessary retention |
@@ -32,10 +34,11 @@ Before any demo or audit:
 
 1. Confirm written authorization and scope.
 2. Change `AP_PASSWORD` and `DASHBOARD_PASSWORD`.
-3. Keep `DASHBOARD_REDACT_CREDENTIALS=1` for screenshots, portfolio material, and public demos.
-4. Use fake or training credentials whenever possible.
-5. Stop active modules when the exercise ends.
-6. Run emergency wipe or hardware wipe before storing, sharing, or reusing the device.
+3. Use the passive audit profile unless the written scope explicitly allows active modules.
+4. Keep `DASHBOARD_REDACT_CREDENTIALS=1` for screenshots, portfolio material, and public demos.
+5. Use fake or training credentials whenever possible.
+6. Stop active modules when the exercise ends.
+7. Run emergency wipe or hardware wipe before storing, sharing, or reusing the device.
 
 ## Data Handling
 

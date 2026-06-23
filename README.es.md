@@ -42,7 +42,7 @@ Este proyecto demuestra habilidades prácticas en:
 - Diseño de tooling de seguridad con dashboard local, APIs autenticadas, logs, exportación y módulos separados
 - Comunicación responsable en ciberseguridad con alcance legal, limitaciones documentadas, CI, guías de contribución y documentación bilingüe
 
-Para demos, mantén `DASHBOARD_REDACT_CREDENTIALS` activado para que screenshots y respuestas API muestren datos redactados en vez de valores sensibles capturados. Las exportaciones CSV/reporte quedan desactivadas mientras este modo esta activo.
+Para demos, mantén `DASHBOARD_REDACT_CREDENTIALS` activado para que screenshots, respuestas API y reportes eviten exponer datos sensibles capturados. La exportación CSV cruda queda desactivada mientras este modo está activo.
 
 ### Lo que Demuestra Este Proyecto
 
@@ -77,7 +77,7 @@ PhantomKit asume un laboratorio de corto alcance donde el operador controla el d
 | Activo | Riesgo | Mitigación |
 |---|---|---|
 | Acceso al dashboard | Cliente local no autorizado controla módulos | Password separado, bloqueo de defaults, lockout, cookie HttpOnly |
-| Entradas capturadas | Valores sensibles expuestos en demos/logs | Modo redactado, exports bloqueados en modo demo, redacción serial |
+| Entradas capturadas | Valores sensibles expuestos en demos/logs | Modo redactado, reportes compatibles con redacción, CSV crudo bloqueado en modo demo, redacción serial |
 | Artefactos almacenados | Datos LittleFS legibles con acceso físico | Emergency wipe, wipe por GPIO, limitación plaintext documentada |
 | Redes cercanas | Disrupción accidental fuera de alcance | Documentos legales, alcance de uso, start/stop por módulo, checklist |
 | Integridad de releases | Firmware local no revisado distribuido | Assets generados por GitHub Actions y checksums SHA-256 |
@@ -90,8 +90,11 @@ Los controles están documentados en [Seguridad por Diseño](docs/safety.es.md).
 
 ### Dashboard Web
 - Control total desde cualquier dispositivo con navegador
+- Wizard de auditoría con perfiles pasivo, portal autorizado y laboratorio completo
+- Modo pasivo que bloquea módulos activos y mantiene escaneo/sniffer/reportes disponibles
 - Captura de credenciales en tiempo real
 - Logs de eventos en vivo con timestamp
+- Reporte de sesión con alcance, contadores, hallazgos y log operativo
 - SSID configurable sin reprogramar
 - Operación autónoma sin internet ni servidor externo
 
@@ -101,7 +104,7 @@ Los controles están documentados en [Seguridad por Diseño](docs/safety.es.md).
 |--------|-------------|---------|
 | Evil Portal | Portal cautivo con 8 templates clonados | DNS Spoofing + Captive Portal |
 | Deauth Attack | Desconecta dispositivos de una red objetivo | IEEE 802.11 Deauth Frames |
-| Beacon Flood | Satura listas de redes con 50+ SSIDs falsos | Fake Beacon Frames |
+| Beacon Flood | Satura listas de redes con SSIDs falsos rotativos | Fake Beacon Frames |
 | Probe Sniffer | Detecta redes buscadas por dispositivos cercanos | Passive Probe Capture |
 | Evil Twin | Clona una red Wi-Fi existente | SSID/BSSID Spoofing |
 | Channel Hopping | Rotación automática en canales 1-13 | Multi-channel Scanning |
@@ -300,7 +303,7 @@ lib_deps =
 |---------|---------|
 | v1.0 | Evil Portal con 8 templates (Facebook, Instagram, Microsoft, X, Google, WiFi Login, Netflix, WhatsApp) |
 | v1.0 | Deauth Attack — frames de deautenticacion IEEE 802.11 |
-| v1.0 | Beacon Flood — mas de 50 SSIDs falsos |
+| v1.0 | Beacon Flood — SSIDs falsos rotativos |
 | v1.0 | Probe Request Sniffer — captura pasiva |
 | v1.0 | Evil Twin — clonacion de SSID/BSSID |
 | v1.0 | Auto-Portal — escaneo del entorno y recomendacion de template |

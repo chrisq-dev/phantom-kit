@@ -42,6 +42,13 @@ private:
     bool isAuthenticated();
     bool defaultCredentialsActive();
     bool loginLocked();
+    bool passiveModeEnabled;
+    String auditProfile;
+    String auditTargetSSID;
+    String auditTargetBSSID;
+    int auditTargetChannel;
+    unsigned long auditStartedAt;
+    bool rejectIfPassive(const char* moduleName);
     void requireAuth();
     String jsonEscape(const String& value);
 
@@ -65,6 +72,8 @@ private:
     void handleAPIExportCSV();
     void handleAPIExportReport();
     void handleAPIStealth();
+    void handleAPIPassive();
+    void handleAPIAudit();
     void handleAPIAutoAttack();
     void handleAPIKarma();
     void handleAPIPMKID();
@@ -77,4 +86,3 @@ private:
 };
 
 #endif
-
