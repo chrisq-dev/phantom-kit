@@ -36,9 +36,14 @@ private:
 
     // Authentication
     String sessionToken;
+    uint8_t failedLoginAttempts;
+    unsigned long loginLockedUntil;
     void generateSessionToken();
     bool isAuthenticated();
+    bool defaultCredentialsActive();
+    bool loginLocked();
     void requireAuth();
+    String jsonEscape(const String& value);
 
     void handleLogin();
     void handleLoginPost();
@@ -72,5 +77,4 @@ private:
 };
 
 #endif
-
 

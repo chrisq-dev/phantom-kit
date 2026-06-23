@@ -156,7 +156,7 @@ String ProbeSnifferModule::getDevicesJSON() {
         json += "\"vendor\":\"" + devices[i].vendor + "\",";
         json += "\"rssi\":" + String(devices[i].rssi) + ",";
         json += "\"ssids\":[";
-        for (int j = 0; j < devices[i].ssidCount && j < 10; j++) {
+        for (int j = 0; j < devices[i].ssidCount && j < MAX_PROBE_SSIDS_PER_DEVICE; j++) {
             if (j > 0) json += ",";
             json += "\"" + devices[i].ssids[j] + "\"";
         }
@@ -196,7 +196,7 @@ void ProbeSnifferModule::addDevice(const String& mac, const String& ssid, int rs
     int idx = findDevice(mac);
     if (idx >= 0) {
         // Update existing device: add SSID if not already seen
-        if (devices[idx].ssidCount < 10) {
+        if (devices[idx].ssidCount < MAX_PROBE_SSIDS_PER_DEVICE) {
             for (int i = 0; i < devices[idx].ssidCount; i++) {
                 if (devices[idx].ssids[i] == ssid) {
                     // Already known SSID — just update rssi and count
@@ -210,7 +210,7 @@ void ProbeSnifferModule::addDevice(const String& mac, const String& ssid, int rs
         }
         devices[idx].rssi = rssi;
         devices[idx].lastSeen = millis();
-    } else if (deviceCount < 50) {
+    } else if (deviceCount < MAX_PROBE_DEVICES) {
         // New device — OUI lookup
         uint8_t macBytes[3];
         sscanf(mac.c_str(), "%hhx:%hhx:%hhx", &macBytes[0], &macBytes[1], &macBytes[2]);
@@ -242,4 +242,3 @@ void ProbeSnifferModule::packetHandler(uint8_t* buf, uint16_t len) {
     // Handled via static callback
     (void)buf; (void)len;
 }
-

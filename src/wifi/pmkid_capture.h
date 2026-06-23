@@ -18,7 +18,7 @@
 // Usage: start after deauth to force clients to re-associate and emit EAPOL.
 // ---------------------------------------------------------------------------
 
-#define MAX_PMKIDS 10
+#define MAX_PMKIDS 5
 
 struct PMKIDEntry {
     uint8_t  pmkid[16];

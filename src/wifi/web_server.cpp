@@ -95,6 +95,8 @@ PhantomWebServer::PhantomWebServer(CredentialStore& store, CaptivePortal& portal
     : server(80), store(store), portal(portal), ap(ap),
       deauth(deauth), beacon(beacon), probe(probe),
       evilTwin(evilTwin), autoPortal(autoPortal), pmkid(pmkid) {
+    failedLoginAttempts = 0;
+    loginLockedUntil = 0;
     generateSessionToken();
 }
 
@@ -104,10 +106,10 @@ PhantomWebServer::PhantomWebServer(CredentialStore& store, CaptivePortal& portal
 
 void PhantomWebServer::generateSessionToken() {
     sessionToken = "";
-    // Simple pseudo-random token from analog noise
-    randomSeed(analogRead(A0) ^ millis());
-    for (int i = 0; i < 16; i++) {
-        sessionToken += String((char)('a' + random(0, 26)));
+    randomSeed(ESP.getCycleCount() ^ micros() ^ analogRead(A0));
+    const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (int i = 0; i < 32; i++) {
+        sessionToken += alphabet[random(0, sizeof(alphabet) - 1)];
     }
 }
 
@@ -119,8 +121,43 @@ bool PhantomWebServer::isAuthenticated() {
     return false;
 }
 
+bool PhantomWebServer::defaultCredentialsActive() {
+    return String(AP_PASSWORD) == "change-me-phantomkit" ||
+           String(DASHBOARD_PASSWORD) == "change-me-auditor";
+}
+
+bool PhantomWebServer::loginLocked() {
+    return loginLockedUntil != 0 && millis() < loginLockedUntil;
+}
+
+String PhantomWebServer::jsonEscape(const String& value) {
+    String out;
+    out.reserve(value.length() + 8);
+    for (size_t i = 0; i < value.length(); i++) {
+        char c = value[i];
+        switch (c) {
+            case '"': out += "\\\""; break;
+            case '\\': out += "\\\\"; break;
+            case '\b': out += "\\b"; break;
+            case '\f': out += "\\f"; break;
+            case '\n': out += "\\n"; break;
+            case '\r': out += "\\r"; break;
+            case '\t': out += "\\t"; break;
+            default:
+                if ((uint8_t)c < 0x20) {
+                    char buf[7];
+                    snprintf(buf, sizeof(buf), "\\u%04x", (uint8_t)c);
+                    out += buf;
+                } else {
+                    out += c;
+                }
+        }
+    }
+    return out;
+}
+
 void PhantomWebServer::requireAuth() {
-    server.sendHeader("Location", "/login");
+    server.sendHeader("Location", "/dashboard/login");
     server.send(302, "text/plain", "");
 }
 
@@ -129,19 +166,47 @@ void PhantomWebServer::handleLogin() {
 }
 
 void PhantomWebServer::handleLoginPost() {
+#if REQUIRE_CUSTOM_CREDENTIALS
+    if (defaultCredentialsActive()) {
+        server.send(403, "text/html",
+            "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>PhantomKit Setup Required</title></head>"
+            "<body style='background:#0a0a0f;color:#e0e0e0;font-family:monospace;padding:32px'>"
+            "<h2 style='color:#ff4444'>Config required</h2>"
+            "<p>Change AP_PASSWORD and DASHBOARD_PASSWORD in src/config.h before enabling the dashboard.</p>"
+            "</body></html>");
+        return;
+    }
+#endif
+
+    if (loginLocked()) {
+        server.send(429, "text/html",
+            "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Locked</title></head>"
+            "<body style='background:#0a0a0f;color:#e0e0e0;font-family:monospace;padding:32px'>"
+            "<h2 style='color:#ff4444'>Too many attempts</h2><p>Wait before trying again.</p></body></html>");
+        return;
+    }
+
     String pw = server.arg("password");
     if (pw == String(DASHBOARD_PASSWORD)) {
-        server.sendHeader("Set-Cookie", "pk_session=" + sessionToken + "; Path=/; HttpOnly");
+        failedLoginAttempts = 0;
+        loginLockedUntil = 0;
+        generateSessionToken();
+        server.sendHeader("Set-Cookie", "pk_session=" + sessionToken + "; Path=/; HttpOnly; SameSite=Strict");
         server.sendHeader("Location", "/dashboard");
         server.send(302, "text/plain", "");
     } else {
+        failedLoginAttempts++;
+        if (failedLoginAttempts >= LOGIN_MAX_ATTEMPTS) {
+            loginLockedUntil = millis() + LOGIN_LOCKOUT_MS;
+            failedLoginAttempts = 0;
+        }
         server.send(200, "text/html",
             "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
             "<title>PhantomKit Login</title></head><body style='background:#0a0a0f;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:monospace'>"
             "<div style='background:#12121a;border:1px solid #1a1a2e;border-radius:8px;padding:32px;width:300px'>"
             "<h2 style='color:#00d4ff;margin:0 0 8px'>PhantomKit</h2>"
             "<p style='color:#ff4444;font-size:13px;margin:0 0 16px'>Contrasena incorrecta</p>"
-            "<form method='POST' action='/login'>"
+            "<form method='POST' action='/dashboard/login'>"
             "<input type='password' name='password' placeholder='Contrasena' autofocus style='width:100%;box-sizing:border-box;padding:10px;background:#1a1a2e;border:1px solid #ff4444;color:#e0e0e0;border-radius:4px;font-family:monospace;margin-bottom:12px'>"
             "<button type='submit' style='width:100%;padding:10px;background:#00d4ff;color:#000;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-family:monospace'>Acceder</button>"
             "</form></div></body></html>");
@@ -150,7 +215,7 @@ void PhantomWebServer::handleLoginPost() {
 
 void PhantomWebServer::handleLogout() {
     server.sendHeader("Set-Cookie", "pk_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
-    server.sendHeader("Location", "/login");
+    server.sendHeader("Location", "/dashboard/login");
     server.send(302, "text/plain", "");
 }
 
@@ -163,7 +228,7 @@ String PhantomWebServer::getLoginHTML() {
            "<div style='background:linear-gradient(135deg,#00d4ff,#7b2ff7);width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#000'>PK</div>"
            "<h2 style='color:#00d4ff;margin:0'>PhantomKit</h2></div>"
            "<p style='color:#666;font-size:11px;margin:0 0 16px;text-transform:uppercase'>Autenticacion requerida</p>"
-           "<form method='POST' action='/login'>"
+           "<form method='POST' action='/dashboard/login'>"
            "<input type='password' name='password' placeholder='Contrasena de auditor' autofocus "
            "style='width:100%;box-sizing:border-box;padding:10px;background:#1a1a2e;border:1px solid #2a2a3e;color:#e0e0e0;border-radius:4px;font-family:monospace;margin-bottom:12px'>"
            "<button type='submit' style='width:100%;padding:10px;background:#00d4ff;color:#000;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-family:monospace'>Acceder</button>"
@@ -181,9 +246,9 @@ void PhantomWebServer::begin() {
     server.collectHeaders("Cookie", "Content-Type");
 
     // Auth routes (no authentication needed)
-    server.on("/login",  HTTP_GET,  [this]() { handleLogin(); });
-    server.on("/login",  HTTP_POST, [this]() { handleLoginPost(); });
-    server.on("/logout", HTTP_GET,  [this]() { handleLogout(); });
+    server.on("/dashboard/login",  HTTP_GET,  [this]() { handleLogin(); });
+    server.on("/dashboard/login",  HTTP_POST, [this]() { handleLoginPost(); });
+    server.on("/dashboard/logout", HTTP_GET,  [this]() { handleLogout(); });
     server.on("/",       HTTP_GET,  [this]() {
         server.sendHeader("Location", "/dashboard");
         server.send(302, "text/plain", "");
@@ -257,8 +322,10 @@ void PhantomWebServer::begin() {
         server.send(200, "text/plain", pmkid.getHashcatOutput());
     });
 
-    // Emergency panic wipe (no auth — intentional for emergency)
-    server.on("/api/panic", HTTP_POST, [this]() { handleAPIPanic(); });
+    server.on("/api/panic", HTTP_POST, [this]() {
+        if (!isAuthenticated()) { server.send(401, "text/plain", "Unauthorized"); return; }
+        handleAPIPanic();
+    });
     server.onNotFound([this]() {
         if (portal.isActive()) {
             String fn = String("/templates/") + TEMPLATES[portal.getCurrentTemplate()];
@@ -287,7 +354,7 @@ void PhantomWebServer::handleDashboard() {
     html += FPSTR(DASH_CSS);
     html += "</style></head><body><div class='c'>";
     
-    html += "<header><div class='logo'><h1>PhantomKit</h1></div><div class='st'><span class='dot' id='sd'></span><span id='st'>Inactivo</span><a href='/logout' style='margin-left:16px;color:#666;font-size:11px;text-decoration:none;padding:4px 8px;border:1px solid #1a1a2e;border-radius:4px'>Salir</a></div></header>";
+    html += "<header><div class='logo'><h1>PhantomKit</h1></div><div class='st'><span class='dot' id='sd'></span><span id='st'>Inactivo</span><a href='/dashboard/logout' style='margin-left:16px;color:#666;font-size:11px;text-decoration:none;padding:4px 8px;border:1px solid #1a1a2e;border-radius:4px'>Salir</a></div></header>";
     
     html += "<nav class='tabs'>";
     html += "<button class='tab a' onclick='showTab(this,\"portal\")'>Portal</button>";
@@ -483,8 +550,8 @@ void PhantomWebServer::handleAPIStatus() {
     String j = "{";
     j += "\"portal_active\":" + String(portal.isActive() ? "true" : "false") + ",";
     j += "\"template\":" + String(portal.getCurrentTemplate()) + ",";
-    j += "\"template_name\":\"" + String(TEMPLATE_NAMES[portal.getCurrentTemplate()]) + "\",";
-    j += "\"ssid\":\"" + ap.getSSID() + "\",";
+    j += "\"template_name\":\"" + jsonEscape(String(TEMPLATE_NAMES[portal.getCurrentTemplate()])) + "\",";
+    j += "\"ssid\":\"" + jsonEscape(ap.getSSID()) + "\",";
     j += "\"clients\":" + String(ap.getClientCount()) + ",";
     j += "\"credentials\":" + String(store.getCount()) + ",";
     j += "\"deauth_active\":" + String(deauth.isRunning() ? "true" : "false") + ",";
@@ -495,7 +562,7 @@ void PhantomWebServer::handleAPIStatus() {
     j += "\"probe_count\":" + String(probe.getProbesCaptured()) + ",";
     j += "\"probe_devices\":" + String(probe.getDeviceCount()) + ",";
     j += "\"karma_active\":" + String(probe.isKarmaActive() ? "true" : "false") + ",";
-    j += "\"karma_ssid\":\"" + probe.getKarmaSSID() + "\",";
+    j += "\"karma_ssid\":\"" + jsonEscape(probe.getKarmaSSID()) + "\",";
     j += "\"pmkid_count\":" + String(pmkid.getCaptureCount()) + ",";
     j += "\"pmkid_active\":" + String(pmkid.isCapturing() ? "true" : "false") + ",";
     j += "\"eviltwin_active\":" + String(evilTwin.isActive() ? "true" : "false");
@@ -602,7 +669,7 @@ void PhantomWebServer::handleAPIAutoAttack() {
     if (action == "suggest") {
         int tpl = AutoPortalModule::suggestTemplate(ssid);
         String j = "{\"ok\":true,\"template\":" + String(tpl);
-        j += ",\"template_name\":\"" + AutoPortalModule::getTemplateNameFor(ssid) + "\"}";
+        j += ",\"template_name\":\"" + jsonEscape(AutoPortalModule::getTemplateNameFor(ssid)) + "\"}";
         server.send(200, "application/json", j);
         return;
     }
@@ -618,7 +685,7 @@ void PhantomWebServer::handleAPIAutoAttack() {
         portal.setTemplate(tpl);
         portal.setActive(true);
         String j = "{\"ok\":true,\"template\":" + String(tpl);
-        j += ",\"template_name\":\"" + AutoPortalModule::getTemplateNameFor(ssid) + "\"}";
+        j += ",\"template_name\":\"" + jsonEscape(AutoPortalModule::getTemplateNameFor(ssid)) + "\"}";
         server.send(200, "application/json", j);
     } else if (action == "stop") {
         deauth.stopAttack();

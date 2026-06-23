@@ -1,5 +1,0 @@
-ESP8266HTTPClient
-ESP8266WiFi
-ESP8266WebServer
-DNSServer
-bblanchon/ArduinoJson @ ^6.21.3

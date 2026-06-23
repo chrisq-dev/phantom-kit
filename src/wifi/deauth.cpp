@@ -29,7 +29,7 @@ void DeauthModule::scanTargets() {
     int n = WiFi.scanNetworks();
     targetCount = 0;
     
-    for (int i = 0; i < n && targetCount < 20; i++) {
+    for (int i = 0; i < n && targetCount < MAX_DEAUTH_TARGETS; i++) {
         targets[targetCount].ssid = WiFi.SSID(i);
         targets[targetCount].bssid = WiFi.BSSIDstr(i);
         targets[targetCount].channel = WiFi.channel(i);
@@ -50,7 +50,7 @@ void DeauthModule::scanAllChannels() {
         delay(100); // Esperar a que el cambio de canal surta efecto
         
         int n = WiFi.scanNetworks();
-        for (int i = 0; i < n && targetCount < 20; i++) {
+        for (int i = 0; i < n && targetCount < MAX_DEAUTH_TARGETS; i++) {
             // Verificar si ya existe esta red
             bool exists = false;
             for (int j = 0; j < targetCount; j++) {

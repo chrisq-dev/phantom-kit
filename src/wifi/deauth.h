@@ -12,8 +12,9 @@ struct DeauthTarget {
     int clientCount;
 };
 
-// Max number of client MACs to track for unicast deauth
-#define MAX_DEAUTH_CLIENTS 20
+// Max number of scanned APs/client MACs retained in RAM.
+#define MAX_DEAUTH_TARGETS 12
+#define MAX_DEAUTH_CLIENTS 10
 
 class DeauthModule {
 public:
@@ -39,7 +40,7 @@ private:
     int targetChannel;
     unsigned long framesSent;
     unsigned long lastScan;
-    DeauthTarget targets[20];
+    DeauthTarget targets[MAX_DEAUTH_TARGETS];
     int targetCount;
     String activeTarget;
 
@@ -53,4 +54,3 @@ private:
 };
 
 #endif
-

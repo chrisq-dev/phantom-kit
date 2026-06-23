@@ -12,6 +12,8 @@ struct EvilTwinTarget {
     bool cloned;
 };
 
+#define MAX_EVIL_TWIN_TARGETS 12
+
 class EvilTwinModule {
 public:
     EvilTwinModule();
@@ -31,7 +33,7 @@ private:
     String activeSSID;
     String activeBSSID;
     int activeChannel;
-    EvilTwinTarget targets[20];
+    EvilTwinTarget targets[MAX_EVIL_TWIN_TARGETS];
     int targetCount;
     
     void generateSimilarBSSID(const String& original, uint8_t* newBssid);

@@ -51,9 +51,7 @@ static String getTimestamp() {
         struct tm t;
         localtime_r(&now, &t);
         char buf[32];
-        snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-                 t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
-                 t.tm_hour, t.tm_min, t.tm_sec);
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &t);
         return String(buf);
     }
     // Fallback: relative time since boot

@@ -53,6 +53,39 @@ Para demos, mantén `DASHBOARD_REDACT_CREDENTIALS` activado para que screenshots
 
 ---
 
+## Arquitectura Rápida
+
+```text
+Navegador del operador
+   |
+   | dashboard HTTP + API local
+   v
+ESP8266 SoftAP + DNS cautivo
+   |
+   +-- Autenticación del dashboard, cookie de sesión, controles de seguridad
+   +-- Templates LittleFS, vista redactada, controles de limpieza
+   +-- Módulos Wi-Fi: portal, probe, PMKID, deauth, beacon, evil twin
+   +-- Uplink opcional para NTP y notificaciones webhook
+```
+
+La implementación queda completamente local después del flasheo: sin cloud, sin servidor en laptop y sin internet requerido para operación normal de laboratorio. Consulta [Arquitectura](docs/architecture.es.md) para el mapa completo de módulos y trade-offs.
+
+## Threat Model
+
+PhantomKit asume un laboratorio de corto alcance donde el operador controla el dispositivo y cuenta con autorización escrita para el espacio RF probado.
+
+| Activo | Riesgo | Mitigación |
+|---|---|---|
+| Acceso al dashboard | Cliente local no autorizado controla módulos | Password separado, bloqueo de defaults, lockout, cookie HttpOnly |
+| Entradas capturadas | Valores sensibles expuestos en demos/logs | Modo redactado, exports bloqueados en modo demo, redacción serial |
+| Artefactos almacenados | Datos LittleFS legibles con acceso físico | Emergency wipe, wipe por GPIO, limitación plaintext documentada |
+| Redes cercanas | Disrupción accidental fuera de alcance | Documentos legales, alcance de uso, start/stop por módulo, checklist |
+| Integridad de releases | Firmware local no revisado distribuido | Assets generados por GitHub Actions y checksums SHA-256 |
+
+Los controles están documentados en [Seguridad por Diseño](docs/safety.es.md).
+
+---
+
 ## Características
 
 ### Dashboard Web
@@ -105,20 +138,22 @@ Para demos, mantén `DASHBOARD_REDACT_CREDENTIALS` activado para que screenshots
 git clone https://github.com/chrisq-dev/phantom-kit.git
 cd phantom-kit
 
-# 2. Compilar el firmware
+# 2. Editar src/config.h y cambiar AP_PASSWORD + DASHBOARD_PASSWORD
+
+# 3. Compilar el firmware
 pio run
 
-# 3. Subir templates al sistema de archivos (LittleFS)
+# 4. Subir templates al sistema de archivos (LittleFS)
 pio run --target uploadfs
 
-# 4. Flashear el firmware
+# 5. Flashear el firmware
 pio run --target upload
 
-# 5. Conectarse a la red creada por el ESP8266
+# 6. Conectarse a la red creada por el ESP8266
 #    SSID:     PhantomKit
-#    Password: change-me-phantomkit
+#    Password: el valor AP_PASSWORD que configuraste
 
-# 6. Abrir el dashboard en el navegador
+# 7. Abrir el dashboard en el navegador
 #    http://192.168.4.1/dashboard
 ```
 
@@ -128,11 +163,12 @@ Edita `src/config.h` para cambiar el SSID, contraseña o canal antes de compilar
 
 ```cpp
 #define AP_SSID     "PhantomKit"
-#define AP_PASSWORD "change-me-phantomkit"
+#define AP_PASSWORD "reemplaza-con-password-fuerte-del-ap"
 #define AP_CHANNEL  6
+#define DASHBOARD_PASSWORD "reemplaza-con-password-fuerte-dashboard"
 ```
 
-Cambia `AP_PASSWORD` y `DASHBOARD_PASSWORD` antes de flashear cualquier dispositivo usado fuera de un laboratorio privado.
+El dashboard rechaza el login mientras los valores `change-me-*` sigan compilados. Cambia `AP_PASSWORD` y `DASHBOARD_PASSWORD` antes de flashear.
 
 ---
 
@@ -171,6 +207,7 @@ phantom-kit/
 │   ├── architecture.es.md      # Arquitectura del sistema en español
 │   ├── setup.md / setup.es.md  # Guías de instalación
 │   ├── usage.md / usage.es.md  # Guías de uso y escenarios
+│   ├── safety.md / safety.es.md # Controles de seguridad y checklist
 │   └── legal.md / legal.es.md  # Disclaimer legal
 ├── CHANGELOG.md                # Historial de versiones
 └── README.md
@@ -183,11 +220,22 @@ phantom-kit/
 - [Arquitectura](docs/architecture.es.md)
 - [Guía de instalación](docs/setup.es.md)
 - [Guía de uso](docs/usage.es.md)
+- [Seguridad por Diseño](docs/safety.es.md)
 - [Disclaimer legal y ético](docs/legal.es.md)
 - [Política de seguridad](SECURITY.es.md)
 - [Guía de contribución](CONTRIBUTING.es.md)
 
-La documentación en inglés está disponible en [README.md](README.md), [docs/architecture.md](docs/architecture.md), [docs/setup.md](docs/setup.md), [docs/usage.md](docs/usage.md) y [docs/legal.md](docs/legal.md).
+La documentación en inglés está disponible en [README.md](README.md), [docs/architecture.md](docs/architecture.md), [docs/setup.md](docs/setup.md), [docs/usage.md](docs/usage.md), [docs/safety.md](docs/safety.md) y [docs/legal.md](docs/legal.md).
+
+## Releases
+
+Los releases taggeados (`v*.*.*`) se compilan con GitHub Actions. Cada release incluye:
+
+- `phantomkit-<version>-firmware.bin`
+- `phantomkit-<version>-littlefs.bin`
+- `SHA256SUMS.txt`
+
+Usa el archivo de checksums para verificar los binarios descargados antes de flashear.
 
 ---
 

@@ -13,6 +13,18 @@ static String redactField(const String& value) {
 #endif
 }
 
+static String csvEscape(const String& value) {
+    String out = "\"";
+    for (size_t i = 0; i < value.length(); i++) {
+        char c = value[i];
+        if (c == '"') out += "\"\"";
+        else if (c == '\r' || c == '\n') out += ' ';
+        else out += c;
+    }
+    out += "\"";
+    return out;
+}
+
 CredentialStore::CredentialStore(int max_entries) {
     this->max_entries = max_entries;
     this->count = 0;
@@ -44,7 +56,7 @@ bool CredentialStore::addCredential(const String& template_name, const String& f
 }
 
 String CredentialStore::getCredentialsJSON() {
-    StaticJsonDocument<4096> doc;
+    StaticJsonDocument<3072> doc;
     JsonArray arr = doc.to<JsonArray>();
 
     for (int i = 0; i < count; i++) {
@@ -101,13 +113,11 @@ void CredentialStore::appendToDisk(const Credential& c) {
     File f = LittleFS.open(CREDENTIALS_FILE, "a");
     if (!f) return;
 
-    // Formato CSV: template,field1,field2,timestamp,mac
-    // Las comas dentro de los campos se escapan con comillas dobles
-    f.print("\""); f.print(c.template_name); f.print("\",");
-    f.print("\""); f.print(c.field1);        f.print("\",");
-    f.print("\""); f.print(c.field2);        f.print("\",");
-    f.print("\""); f.print(c.timestamp);     f.print("\",");
-    f.print("\""); f.print(c.client_mac);    f.println("\"");
+    f.print(csvEscape(c.template_name)); f.print(",");
+    f.print(csvEscape(c.field1));        f.print(",");
+    f.print(csvEscape(c.field2));        f.print(",");
+    f.print(csvEscape(c.timestamp));     f.print(",");
+    f.println(csvEscape(c.client_mac));
     f.close();
 }
 
@@ -131,10 +141,19 @@ void CredentialStore::loadFromDisk() {
         while (pos < len && fieldIdx < 5) {
             if (line[pos] == '"') {
                 pos++; // saltar comilla de apertura
-                int start = pos;
-                while (pos < len && line[pos] != '"') pos++;
-                fields[fieldIdx++] = line.substring(start, pos);
-                pos++; // saltar comilla de cierre
+                String field = "";
+                while (pos < len) {
+                    if (line[pos] == '"' && pos + 1 < len && line[pos + 1] == '"') {
+                        field += '"';
+                        pos += 2;
+                    } else if (line[pos] == '"') {
+                        pos++;
+                        break;
+                    } else {
+                        field += line[pos++];
+                    }
+                }
+                fields[fieldIdx++] = field;
                 if (pos < len && line[pos] == ',') pos++; // saltar coma
             } else {
                 int start = pos;
@@ -174,9 +193,7 @@ String CredentialStore::formatTimestamp() {
         struct tm t;
         localtime_r(&now, &t);
         char buf[32];
-        snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-                 t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
-                 t.tm_hour, t.tm_min, t.tm_sec);
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &t);
         return String(buf);
     }
     // Fallback: relative time since boot

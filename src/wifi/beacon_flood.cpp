@@ -82,7 +82,7 @@ int BeaconFloodModule::getSSIDCount() {
 }
 
 void BeaconFloodModule::setCustomSSIDs(const String ssids[], int count) {
-    customSSIDCount = count > 50 ? 50 : count;
+    customSSIDCount = count > 24 ? 24 : count;
     for (int i = 0; i < customSSIDCount; i++) {
         customSSIDs[i] = ssids[i];
     }

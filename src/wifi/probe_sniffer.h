@@ -7,10 +7,13 @@
 // Parameters: ssid, suggestedTemplateIndex
 typedef void (*KarmaCallback)(const String& ssid, int templateIdx);
 
+#define MAX_PROBE_DEVICES 24
+#define MAX_PROBE_SSIDS_PER_DEVICE 5
+
 struct ProbeDevice {
     String mac;
     String vendor;       // OUI lookup result
-    String ssids[10];
+    String ssids[MAX_PROBE_SSIDS_PER_DEVICE];
     int    ssidCount;
     int    rssi;
     unsigned long lastSeen;
@@ -38,7 +41,7 @@ private:
     bool running;
     int channel;
     unsigned long probesCaptured;
-    ProbeDevice devices[50];
+    ProbeDevice devices[MAX_PROBE_DEVICES];
     int deviceCount;
     unsigned long lastChannelHop;
 
@@ -53,4 +56,3 @@ private:
 };
 
 #endif
-

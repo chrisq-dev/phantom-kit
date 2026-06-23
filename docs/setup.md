@@ -59,7 +59,7 @@ pio device monitor --baud 115200
 2. Build and flash the firmware using the commands above.
 3. From a phone or laptop, connect to the Wi-Fi network:
    - **SSID:** `PhantomKit`
-   - **Password:** `change-me-phantomkit`
+   - **Password:** the `AP_PASSWORD` value you configured in `src/config.h`
 4. Open `http://192.168.4.1/dashboard` in a browser.
 5. Log in with the dashboard password configured in `src/config.h`.
 
@@ -82,9 +82,11 @@ Configured in `src/config.h`:
 
 ```cpp
 #define AP_SSID "PhantomKit"
-#define AP_PASSWORD "change-me-phantomkit"
-#define DASHBOARD_PASSWORD "change-me-auditor"
+#define AP_PASSWORD "replace-with-a-strong-ap-password"
+#define DASHBOARD_PASSWORD "replace-with-a-strong-dashboard-password"
 ```
+
+The firmware blocks dashboard login while the default `change-me-*` values are compiled in.
 
 Change these values before using the device outside a private lab.
 
@@ -93,7 +95,7 @@ Change these values before using the device outside a private lab.
 For portfolio demos, keep credential redaction enabled:
 
 ```cpp
-#define DASHBOARD_REDACT_CREDENTIALS true
+#define DASHBOARD_REDACT_CREDENTIALS 1
 ```
 
 When enabled, dashboard/API credential fields are redacted and CSV/report exports are blocked.

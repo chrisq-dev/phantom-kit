@@ -18,7 +18,7 @@
 // When true, the management AP SSID is hidden from Wi-Fi scans.
 // You must know the SSID to connect (set it manually on your device).
 // ---------------------------------------------------------------------------
-#define STEALTH_MODE false
+#define STEALTH_MODE 0
 
 // ---------------------------------------------------------------------------
 // Dashboard Authentication
@@ -26,12 +26,23 @@
 // ---------------------------------------------------------------------------
 #define DASHBOARD_PASSWORD "change-me-auditor"
 
+// Refuse dashboard login while default credentials are still compiled in.
+// Keep this enabled for public releases and portfolio demos.
+#define REQUIRE_CUSTOM_CREDENTIALS 1
+
+// Simple local brute-force guard for the dashboard password.
+#define LOGIN_MAX_ATTEMPTS 5
+#define LOGIN_LOCKOUT_MS   60000
+
 // ---------------------------------------------------------------------------
 // Portfolio / demo safety
 // Redacts captured fields in dashboard/API responses by default. Disable only
 // inside an authorized lab when you explicitly need raw collected values.
 // ---------------------------------------------------------------------------
-#define DASHBOARD_REDACT_CREDENTIALS true
+#define DASHBOARD_REDACT_CREDENTIALS 1
+
+// Never print captured raw fields to Serial while enabled.
+#define SERIAL_REDACT_CREDENTIALS 1
 
 // ---------------------------------------------------------------------------
 // Emergency Wipe
@@ -46,7 +57,7 @@
 // When probe sniffer is active with karma enabled, the AP SSID will change
 // to match the first non-broadcast probe request detected.
 // ---------------------------------------------------------------------------
-#define KARMA_MODE_DEFAULT false    // Disabled by default, enable from dashboard
+#define KARMA_MODE_DEFAULT 0        // Disabled by default, enable from dashboard
 
 // ---------------------------------------------------------------------------
 // Uplink WiFi (optional)
@@ -69,7 +80,7 @@
 // ---------------------------------------------------------------------------
 // Channel Hopping
 // ---------------------------------------------------------------------------
-#define CHANNEL_HOPPING_ENABLED true
+#define CHANNEL_HOPPING_ENABLED 1
 #define CHANNEL_HOP_INTERVAL    500
 #define MIN_CHANNEL             1
 #define MAX_CHANNEL             13
@@ -78,7 +89,7 @@
 // Dashboard / Storage limits
 // ---------------------------------------------------------------------------
 #define DASHBOARD_PORT   80
-#define MAX_CREDENTIALS  50
+#define MAX_CREDENTIALS  30
 #define MAX_LOGS         30
 
 // ---------------------------------------------------------------------------

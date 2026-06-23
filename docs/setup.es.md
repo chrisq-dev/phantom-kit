@@ -60,7 +60,7 @@ pio device monitor --baud 115200
 2. Compila y flashea con los comandos anteriores
 3. Desde tu teléfono o laptop, conéctate a la red WiFi:
    - **SSID:** `PhantomKit`
-   - **Password:** `change-me-phantomkit`
+   - **Password:** el valor `AP_PASSWORD` que configuraste en `src/config.h`
 4. Abre el navegador y ve a: `http://192.168.4.1/dashboard`
 5. Verás el dashboard de control con todos los módulos
 
@@ -90,9 +90,11 @@ Por defecto en canal 6 (más compatible universalmente). Cambiable en `src/confi
 Configurables en `src/config.h`:
 ```cpp
 #define AP_SSID "PhantomKit"
-#define AP_PASSWORD "change-me-phantomkit"
-#define DASHBOARD_PASSWORD "change-me-auditor"
+#define AP_PASSWORD "reemplaza-con-password-fuerte-del-ap"
+#define DASHBOARD_PASSWORD "reemplaza-con-password-fuerte-dashboard"
 ```
+
+El firmware bloquea el login del dashboard mientras los valores default `change-me-*` sigan compilados.
 
 Cambia estas contraseñas antes de usar el dispositivo fuera de un laboratorio privado.
 

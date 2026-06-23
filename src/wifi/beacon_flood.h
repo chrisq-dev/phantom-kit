@@ -20,7 +20,7 @@ private:
     int channel;
     unsigned long beaconsSent;
     unsigned long lastBeacon;
-    String customSSIDs[50];
+    String customSSIDs[24];
     int customSSIDCount;
     
     void sendBeacon(const String& ssid, const uint8_t* bssid);

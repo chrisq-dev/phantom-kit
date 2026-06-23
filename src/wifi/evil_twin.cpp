@@ -21,7 +21,7 @@ void EvilTwinModule::scanTargets() {
     int n = WiFi.scanNetworks();
     targetCount = 0;
     
-    for (int i = 0; i < n && targetCount < 20; i++) {
+    for (int i = 0; i < n && targetCount < MAX_EVIL_TWIN_TARGETS; i++) {
         targets[targetCount].ssid = WiFi.SSID(i);
         targets[targetCount].bssid = WiFi.BSSIDstr(i);
         targets[targetCount].channel = WiFi.channel(i);
@@ -42,7 +42,7 @@ void EvilTwinModule::scanAllChannels() {
         delay(100);
         
         int n = WiFi.scanNetworks();
-        for (int i = 0; i < n && targetCount < 20; i++) {
+        for (int i = 0; i < n && targetCount < MAX_EVIL_TWIN_TARGETS; i++) {
             bool exists = false;
             for (int j = 0; j < targetCount; j++) {
                 if (targets[j].bssid == WiFi.BSSIDstr(i)) {
